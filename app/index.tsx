@@ -1,16 +1,23 @@
 import { useFonts } from 'expo-font';
+import { Stack, useNavigation } from 'expo-router';
 import { Limelight_400Regular } from '@expo-google-fonts/limelight';
 import { LibreBaskerville_400Regular } from '@expo-google-fonts/libre-baskerville';
 import { Poppins_400Regular } from '@expo-google-fonts/poppins';
 import { Image, StyleSheet, ActivityIndicator, TouchableOpacity, Dimensions } from 'react-native';
 import React from 'react';
+import { useEffect } from 'react';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
-  
+    const navigation = useNavigation();
+    
+    useEffect(() => {
+        navigation.setOptions({ headerShown: false });
+      }, [navigation]);
+
   const [fontsLoaded] = useFonts({
     Limelight_400Regular,
     LibreBaskerville_400Regular,
