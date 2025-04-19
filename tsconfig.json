@@ -27,6 +27,7 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "components/lottieLoading.js",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ],

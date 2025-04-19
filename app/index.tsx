@@ -5,14 +5,17 @@ import { LibreBaskerville_400Regular } from '@expo-google-fonts/libre-baskervill
 import { Poppins_400Regular } from '@expo-google-fonts/poppins';
 import { Image, StyleSheet, ActivityIndicator, TouchableOpacity, Dimensions } from 'react-native';
 import React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import LottieView from 'lottie-react-native';
+
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
     const navigation = useNavigation();
+    const [showContent, setShowContent] = useState(false);
     
     useEffect(() => {
         navigation.setOptions({ headerShown: false });
@@ -24,11 +27,23 @@ export default function HomeScreen() {
     Poppins_400Regular
   });
 
-  if (!fontsLoaded) {
+  useEffect(() => {
+    if (fontsLoaded) {
+        const timer = setTimeout(() => setShowContent(true), 3000);
+        return () => clearTimeout(timer);
+    }
+}, [fontsLoaded]);
+
+  if (!fontsLoaded || !showContent) {
     return (
       <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
-        <ThemedText>Carregando fontes...</ThemedText>
+        {/* <ActivityIndicator size="large" /> */}
+          <LottieView
+              source={require('../assets/lottie/loading.json')}
+              autoPlay
+              loop
+              style={{ width: 200, height: 200 }}
+          />
       </ThemedView>
     );
   }
@@ -68,9 +83,6 @@ const styles = StyleSheet.create({
   },
   TaskTamerLogo: {
     width: '60%',
-    // width: width * 0.68, // 60% da largura da tela
-    // height: width * 0.68, // Mantém proporção
-    //marginTop: 20,
     resizeMode: 'contain',
   },
   text: {
