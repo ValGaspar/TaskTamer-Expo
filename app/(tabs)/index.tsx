@@ -61,9 +61,6 @@ const styles = StyleSheet.create({
   },
   TaskTamerLogo: {
     width: '60%',
-    // width: width * 0.68, // 60% da largura da tela
-    // height: width * 0.68, // Mantém proporção
-    //marginTop: 20,
     resizeMode: 'contain',
   },
   text: {
