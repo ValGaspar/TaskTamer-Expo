@@ -28,6 +28,7 @@ export default function HomeScreen() {
   
   return (
       <ThemedView style={styles.stepContainer}>
+        
         <Image
           source={require('@/assets/images/TasktamerLogo.png')}
           style={styles.TaskTamerLogo}
@@ -38,6 +39,7 @@ export default function HomeScreen() {
         <TouchableOpacity style={styles.button} onPress={() => console.log('Botão pressionado')}>
           <ThemedText style={styles.buttonText}>Iniciar</ThemedText>
         </TouchableOpacity>
+
       </ThemedView>
   );
 }
@@ -78,6 +80,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 45,
     borderRadius: 25,
+    marginBottom: 100
   },
   
   buttonText: {
