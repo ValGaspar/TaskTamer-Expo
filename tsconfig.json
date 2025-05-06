@@ -27,7 +27,6 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    "components/lottieLoading.js"
   ],
   "extends": "expo/tsconfig.base"
 }
