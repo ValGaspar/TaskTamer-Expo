@@ -86,7 +86,7 @@ const styles = StyleSheet.create({ // css
     paddingHorizontal: 12,
     fontSize: 16,
     marginBottom: 20,
-    backgroundColor: '#fff',
+    backgroundColor: 'grey',
   },
   item: {
     flexDirection: 'row',

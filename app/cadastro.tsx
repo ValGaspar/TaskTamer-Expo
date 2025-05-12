@@ -2,10 +2,10 @@ import React from 'react';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-export default function ProfileScreen() {
+export default function LoginScreen() {
   return (
     <ThemedView>
-      <ThemedText>Profile Page</ThemedText>
+      <ThemedText>Cadastro</ThemedText>
     </ThemedView>
   );
 }

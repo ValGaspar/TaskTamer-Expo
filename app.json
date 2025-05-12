@@ -1,15 +1,15 @@
 {
   "expo": {
     "newArchEnabled": true,
-    "name": "TaskTamer",
+    "name": " ",
     "scheme": "TASKTAMER",
     "slug": "TaskTamer",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/TasktamerLogo.png",
+    "icon": "./assets/images/TasktamerLOGO.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/TasktamerLogo.png",
+      "image": "./assets/images/TasktamerLOGO.png",
       "resizeMode": "contain",
       "backgroundColor": "#98B88F",
       "loadingIndicator": "none"
@@ -17,14 +17,14 @@
     "ios": {
       "supportsTablet": true,
       "splash": {
-        "image": "./assets/images/TasktamerLogo.png",
+        "image": "./assets/images/TasktamerLOGO.png",
         "resizeMode": "contain",
         "backgroundColor": "#98B88F"
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/TasktamerLogo.png",
+        "foregroundImage": "./assets/images/TasktamerLOGO.png",
         "backgroundColor": "#98B88F"
       },
       "splash": {
