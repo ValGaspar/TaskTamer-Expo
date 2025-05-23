@@ -1,15 +1,13 @@
 {
   "expo": {
     "newArchEnabled": true,
-    "name": " ",
+    "name": "TaskTamer",
     "scheme": "TASKTAMER",
     "slug": "TaskTamer",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/TasktamerLOGO.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/TasktamerLOGO.png",
       "resizeMode": "contain",
       "backgroundColor": "#98B88F",
       "loadingIndicator": "none"
@@ -17,21 +15,22 @@
     "ios": {
       "supportsTablet": true,
       "splash": {
-        "image": "./assets/images/TasktamerLOGO.png",
         "resizeMode": "contain",
         "backgroundColor": "#98B88F"
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/TasktamerLOGO.png",
         "backgroundColor": "#98B88F"
       },
       "splash": {
-        "backgroundColor": "#98B88F",
-        "resizeMode": "contain"
+        "image": "./assets/images/TasktamerLOGO.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#98B88F"
       }
     },
-    "plugins": ["expo-router"]
+    "plugins": [
+      "expo-router"
+    ]
   }
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useRouter } from 'expo-router';
+import { useRouter, Link } from 'expo-router';
 import { Image, StyleSheet, TouchableOpacity, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -51,7 +51,7 @@ export default function LoginScreen() {
 
       <ThemedText style={styles.text}>
         Não tem uma conta? Toque para
-        <ThemedText style={styles.criar}> Criar</ThemedText>
+        <Link style={styles.criar} href='/cadastro'> Criar</Link>
       </ThemedText>
     </ThemedView>
   );
