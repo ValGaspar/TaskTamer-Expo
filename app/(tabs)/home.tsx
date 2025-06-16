@@ -32,7 +32,8 @@ export default function HomeScreen() {
     },
   ];
 
-  const Item = ({ title }) => (
+
+  const Item = ({ title }: { title: string }) => (
     <View style={styles.item}>
       <Text style={styles.title}>{title}</Text>
     </View>
