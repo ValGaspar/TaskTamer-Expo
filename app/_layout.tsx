@@ -17,7 +17,7 @@ export default function RootLayout() {
 
         // Carrega sua logo
         await Asset.loadAsync([
-          require('../assets/images/TasktamerLOGO.png'),
+          require('@/assets/images/TasktamerLogo.png'),
         ]);
 
         // Simula qualquer outro carregamento (opcional)

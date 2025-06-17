@@ -32,7 +32,8 @@ export default function HomeScreen() {
     },
   ];
 
-  const Item = ({ title }) => (
+
+  const Item = ({ title }: { title: string }) => (
     <View style={styles.item}>
       <Text style={styles.title}>{title}</Text>
     </View>
@@ -42,7 +43,7 @@ export default function HomeScreen() {
     <ThemedView style={styles.stepContainer}>
       <ThemedView style={styles.Container}>
         <ThemedText style={styles.title}>Gerenciador de Tarefas</ThemedText>
-        <TextInput style={styles.input} placeholder="Seu texto aqui..." />
+        
         <ThemedView>
           <FlatList
             data={DATA}
@@ -78,16 +79,6 @@ const styles = StyleSheet.create({ // css
     fontSize: 18,
     padding: 10,
     color: 'white'
-  },
-  input: {
-    height: 50,
-    borderColor: '#fff',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 16,
-    marginBottom: 20,
-    backgroundColor: 'grey',
   },
   item: {
     flexDirection: 'row',

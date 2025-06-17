@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Animated, View, StyleSheet, Image } from 'react-native';
+import { Animated, View, StyleSheet } from 'react-native';
 
 type Props = {
   finish: () => void;
@@ -35,7 +35,7 @@ export default function AnimatedSplash({ finish }: Props) {
   return (
     <View style={styles.container}>
       <Animated.Image
-        source={require('../assets/images/TasktamerLOGO.png')}
+        source={require('../assets/images/TasktamerLogo.png')}
         style={[styles.logo, { transform: [{ scale: scaleAnim }] }]}
         resizeMode="contain"
       />
