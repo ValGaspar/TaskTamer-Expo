@@ -7,7 +7,7 @@ import Checkbox from 'expo-checkbox';
 import React from 'react';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-
+import { CircularProgress } from '@/components/CircularProgress';
 
 const { width } = Dimensions.get('window');
 
@@ -42,7 +42,9 @@ export default function HomeScreen() {
   return (
     <ThemedView style={styles.stepContainer}>
       <ThemedView style={styles.Container}>
-        <ThemedText style={styles.title}>Gerenciador de Tarefas</ThemedText>
+        {/* Preenche a porcentagem da barra de progresso */}
+        <CircularProgress fill={80} />
+        {/* Dropdown com as datas */}
         
         <ThemedView>
           <FlatList
