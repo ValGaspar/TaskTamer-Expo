@@ -2,12 +2,11 @@ import { useFonts } from 'expo-font';
 import { Limelight_400Regular } from '@expo-google-fonts/limelight';
 import { LibreBaskerville_400Regular } from '@expo-google-fonts/libre-baskerville';
 import { Poppins_400Regular } from '@expo-google-fonts/poppins';
-import { StyleSheet, Dimensions, TextInput, FlatList, View, Text } from 'react-native';
+import { StyleSheet, Dimensions, FlatList, Text } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import React from 'react';
-import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-
+import { CircularProgress } from '@/components/CircularProgress';
 
 const { width } = Dimensions.get('window');
 
@@ -34,25 +33,26 @@ export default function HomeScreen() {
 
 
   const Item = ({ title }: { title: string }) => (
-    <View style={styles.item}>
+    <ThemedView style={styles.item}>
       <Text style={styles.title}>{title}</Text>
-    </View>
+    </ThemedView>
   );
 
   return (
     <ThemedView style={styles.stepContainer}>
       <ThemedView style={styles.Container}>
-        <ThemedText style={styles.title}>Gerenciador de Tarefas</ThemedText>
+        <CircularProgress fill={80} />
+        {/* <ThemedText style={styles.title}>Gerenciador de Tarefas</ThemedText> */}
         
         <ThemedView>
           <FlatList
             data={DATA}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <View style={styles.item}>
+              <ThemedView style={styles.item}>
                 <Checkbox style={styles.checkbox} />
                 <Text style={styles.title}>{item.title}</Text>
-              </View>
+              </ThemedView>
             )}
           />
         </ThemedView>
