@@ -44,7 +44,7 @@ export default function HomeScreen() {
       <ThemedView style={styles.Container}>
         <CircularProgress fill={80} />
         {/* Dropdown: Escolha de data */}
-        {/* <DatePickerBox /> */}
+        
         <ThemedView>
           <FlatList
             data={DATA}
