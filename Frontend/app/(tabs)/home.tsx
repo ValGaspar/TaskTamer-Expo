@@ -7,6 +7,7 @@ import Checkbox from 'expo-checkbox';
 import React from 'react';
 import { ThemedView } from '@/components/ThemedView';
 import { CircularProgress } from '@/components/CircularProgress';
+// import DatePickerBox from '@/components/DatePickerBox';
 
 const { width } = Dimensions.get('window');
 
@@ -42,7 +43,7 @@ export default function HomeScreen() {
     <ThemedView style={styles.stepContainer}>
       <ThemedView style={styles.Container}>
         <CircularProgress fill={80} />
-        {/* <ThemedText style={styles.title}>Gerenciador de Tarefas</ThemedText> */}
+        {/* Dropdown: Escolha de data */}
         
         <ThemedView>
           <FlatList
