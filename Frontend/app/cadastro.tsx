@@ -1,13 +1,48 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { Image, StyleSheet, TouchableOpacity, TextInput, View } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, TextInput, View, Alert } from 'react-native';
 import { useRouter, Link } from 'expo-router';
 
 export default function cadastroScreen() {
   const router = useRouter();
+  
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+    const handleCreateUser = async () => {
+    if (!name || !email || !password || !confirmPassword) {
+      Alert.alert('Erro', 'Preencha todos os campos.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert('Erro', 'As senhas não coincidem.');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://192.168.255.112:3000/users', {  // ajuste a URL conforme seu backend
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      if (response.ok) {
+        Alert.alert('Sucesso', 'Usuário criado com sucesso!');
+        router.push('/home');
+      } else {
+        const data = await response.json();
+        Alert.alert('Erro', data.message || 'Erro ao criar usuário');
+      }
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível conectar ao servidor.');
+    }
+  };
+
   return (
-    <ThemedView style={styles.stepContainer}>
+     <ThemedView style={styles.stepContainer}>
       <Image 
         source={require('@/assets/images/title.png')}
         style={styles.TaskTamerLogo}
@@ -25,6 +60,8 @@ export default function cadastroScreen() {
           style={styles.input} 
           placeholder="Nome" 
           placeholderTextColor="#ffff"
+          value={name}
+          onChangeText={setName}
         />
       </ThemedView>
 
@@ -37,6 +74,10 @@ export default function cadastroScreen() {
           style={styles.input} 
           placeholder="E-mail" 
           placeholderTextColor="#ffff"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
         />
       </ThemedView>
 
@@ -49,6 +90,9 @@ export default function cadastroScreen() {
           style={styles.input} 
           placeholder="Senha" 
           placeholderTextColor="#ffff"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
         />
       </ThemedView>
 
@@ -61,13 +105,16 @@ export default function cadastroScreen() {
           style={styles.input} 
           placeholder="Confirmar senha" 
           placeholderTextColor="#ffff"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry
         />
       </ThemedView>
 
       <View style={styles.buttonSpacing} />
 
-      <TouchableOpacity style={styles.button}>
-        <ThemedText style={styles.buttonText} onPress={() => router.navigate('/home')}>
+      <TouchableOpacity style={styles.button} onPress={handleCreateUser}>
+        <ThemedText style={styles.buttonText}>
           Criar
         </ThemedText>
       </TouchableOpacity>
