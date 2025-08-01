@@ -23,7 +23,7 @@ export default function cadastroScreen() {
     }
 
     try {
-      const response = await fetch('http://192.168.255.112:3000/users', {  // ajuste a URL conforme seu backend
+      const response = await fetch('https://tasktamer-expo.onrender.com/users', {  // ajuste a URL conforme seu backend
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
