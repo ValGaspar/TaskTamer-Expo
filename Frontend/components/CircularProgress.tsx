@@ -31,7 +31,7 @@ export const CircularProgress = ({
         {() => (
           <View>
             {/* Porcentagem Tarefas */}
-            <Text style={styles.percent}> 80% </Text>
+            <Text style={styles.percent}> 0% </Text>
           </View>
         )}
       </AnimatedCircularProgress>

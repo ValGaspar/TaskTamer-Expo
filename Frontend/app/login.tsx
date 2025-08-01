@@ -3,6 +3,7 @@ import { useRouter, Link } from 'expo-router';
 import { Image, StyleSheet, TouchableOpacity, TextInput, View, Alert } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { Asset } from 'expo-asset';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function LoginScreen() {
     }
 
     try {
-      const response = await fetch('http://192.168.255.112:3000/auth', {
+      const response = await fetch('https://tasktamer-expo.onrender.com/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

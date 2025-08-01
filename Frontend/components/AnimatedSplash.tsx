@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, View, StyleSheet } from 'react-native';
+import { Asset } from 'expo-asset';
 
 type Props = {
   finish: () => void;
@@ -7,8 +8,30 @@ type Props = {
 
 export default function AnimatedSplash({ finish }: Props) {
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const [imagesLoaded, setImagesLoaded] = useState(false);
 
   useEffect(() => {
+    async function loadImages() {
+      try {
+        await Asset.loadAsync([
+          require('@/assets/images/TasktamerLogo.png'),
+          require('@/assets/images/Tasktamer.png'),
+          require('@/assets/images/title.png'),
+          require('@/assets/images/email.png'),
+          require('@/assets/images/padlock.png'),
+          require("@/assets/images/perfil.png")
+        ]);
+      } catch (e) {
+        console.warn('Erro ao carregar imagens:', e);
+      }
+      setImagesLoaded(true);
+    }
+    loadImages();
+  }, []);
+
+  useEffect(() => {
+    if (!imagesLoaded) return;
+
     Animated.sequence([
       Animated.timing(scaleAnim, {
         toValue: 1.2,
@@ -30,7 +53,7 @@ export default function AnimatedSplash({ finish }: Props) {
         finish();
       }, 1000);
     });
-  }, []);
+  }, [imagesLoaded]);
 
   return (
     <View style={styles.container}>

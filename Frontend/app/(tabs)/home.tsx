@@ -42,7 +42,7 @@ export default function HomeScreen() {
   return (
     <ThemedView style={styles.stepContainer}>
       <ThemedView style={styles.Container}>
-        <CircularProgress fill={80} />
+        <CircularProgress fill={0} />
         {/* Dropdown: Escolha de data */}
         
         <ThemedView>
