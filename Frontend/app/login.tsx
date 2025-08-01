@@ -1,11 +1,41 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter, Link } from 'expo-router';
-import { Image, StyleSheet, TouchableOpacity, TextInput, View } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, TextInput, View, Alert } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 export default function LoginScreen() {
   const router = useRouter();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+   const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Erro', 'Preencha todos os campos.');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://192.168.255.112:3000/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert('Sucesso', 'Login realizado com sucesso!');
+        router.push('/home');
+      } else {
+        Alert.alert('Erro', data.message || 'Credenciais inválidas.');
+      }
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível conectar ao servidor.');
+    }
+  };
+
   return (
     <ThemedView style={styles.stepContainer}>
       <Image 
@@ -15,6 +45,7 @@ export default function LoginScreen() {
       <ThemedText style={styles.titleContainer}>Login</ThemedText>
 
       <View style={styles.inputSpacing} />
+
       <ThemedView style={styles.inputContainer}>
         <Image 
           source={require('@/assets/images/email.png')}
@@ -24,6 +55,10 @@ export default function LoginScreen() {
           style={styles.input} 
           placeholder="E-mail" 
           placeholderTextColor="#ffff"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
         />
       </ThemedView>
 
@@ -36,18 +71,19 @@ export default function LoginScreen() {
           style={styles.input} 
           placeholder="Senha" 
           placeholderTextColor="#ffff"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
         />
       </ThemedView>
 
       <View style={styles.buttonSpacing} />
 
-      <TouchableOpacity style={styles.button}>
-        <ThemedText style={styles.buttonText} onPress={() => router.navigate('/home')}>
-          Entrar
-        </ThemedText>
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <ThemedText style={styles.buttonText}>Entrar</ThemedText>
       </TouchableOpacity>
 
-      <ThemedView style={styles.line}></ThemedView>
+      <ThemedView style={styles.line} />
 
       <ThemedText style={styles.text}>
         Não tem uma conta? Toque para

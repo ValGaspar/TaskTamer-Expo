@@ -35,7 +35,7 @@ export default function AnimatedSplash({ finish }: Props) {
   return (
     <View style={styles.container}>
       <Animated.Image
-        source={require('../assets/images/TasktamerLogo.png')}
+        source={require('@/assets/images/TasktamerLogo.png')}
         style={[styles.logo, { transform: [{ scale: scaleAnim }] }]}
         resizeMode="contain"
       />
