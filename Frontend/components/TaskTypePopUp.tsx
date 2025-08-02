@@ -1,4 +1,3 @@
-// Task Type Pop Up para escolha entre Tarefa ou Compromisso
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
@@ -22,14 +21,14 @@ export const TaskTypePopUp = ({ visible, onClose, onSelect }: Props) => {
 
           <TouchableOpacity
             style={styles.option}
-            onPress={() => onSelect('tarefa')}
+            onPress={() => onSelect('tarefa')}  // Chama onSelect ao clicar
           >
             <Text style={styles.optionText}>Tarefa</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.option}
-            onPress={() => onSelect('compromisso')}
+            onPress={() => onSelect('compromisso')}  // Chama onSelect ao clicar
           >
             <Text style={styles.optionText}>Compromisso</Text>
           </TouchableOpacity>

@@ -1,15 +1,27 @@
+import React, { useState } from 'react';
+import { StyleSheet, Dimensions, FlatList, Text, TouchableOpacity, View, Image } from 'react-native';
+import Checkbox from 'expo-checkbox';
 import { useFonts } from 'expo-font';
 import { Limelight_400Regular } from '@expo-google-fonts/limelight';
 import { LibreBaskerville_400Regular } from '@expo-google-fonts/libre-baskerville';
 import { Poppins_400Regular } from '@expo-google-fonts/poppins';
-import { StyleSheet, Dimensions, FlatList, Text, TouchableOpacity, View, Image, Modal } from 'react-native';
-import Checkbox from 'expo-checkbox';
-import React, { useState } from 'react';
+import { ListRenderItem } from 'react-native';
+
 import { ThemedView } from '@/components/ThemedView';
 import { CircularProgress } from '@/components/CircularProgress';
 import { TaskTypePopUp } from '@/components/TaskTypePopUp';
+import { TaskDetailPopUp } from '@/components/TaskDetailPopUp';
 
 const { width } = Dimensions.get('window');
+
+type Task = {
+  id: string;
+  title: string;
+  description?: string;
+  date?: Date;
+  priority?: string;
+  type: 'tarefa' | 'compromisso';
+};
 
 export default function HomeScreen() {
   const [fontsLoaded] = useFonts({
@@ -18,19 +30,49 @@ export default function HomeScreen() {
     Poppins_400Regular,
   });
 
-  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [tasks, setTasks] = useState<Task[]>([
+    { id: '1', title: 'Tarefa 1', type: 'tarefa' },
+    { id: '2', title: 'Tarefa 2', type: 'tarefa' },
+    { id: '3', title: 'Tarefa 3', type: 'tarefa' },
+  ]);
 
-  const DATA = [
-    { id: '1', title: 'Tarefa 1' },
-    { id: '2', title: 'Tarefa 2' },
-    { id: '3', title: 'Tarefa 3' },
-    { id: '4', title: 'Tarefa 4' },
-    { id: '5', title: 'Tarefa 5' },
-  ];
+  const [showTypeModal, setShowTypeModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedType, setSelectedType] = useState<'tarefa' | 'compromisso' | ''>('');
 
-  const togglePopup = () => {
-    setIsPopupVisible(!isPopupVisible);
+  const openTypeModal = () => setShowTypeModal(true);
+  const closeTypeModal = () => setShowTypeModal(false);
+
+  const openDetailModal = () => setShowDetailModal(true);
+  const closeDetailModal = () => setShowDetailModal(false);
+
+  const handleSelectType = (type: 'tarefa' | 'compromisso') => {
+    setSelectedType(type);
+    closeTypeModal();
+    setTimeout(() => openDetailModal(), 200);
   };
+
+  const handleSubmitDetail = (data: { title: string; description: string; date: Date; priority: string }) => {
+    const newTask: Task = {
+      id: (tasks.length + 1).toString(),
+      title: data.title,
+      description: data.description,
+      date: data.date,
+      priority: data.priority,
+      type: selectedType as 'tarefa' | 'compromisso',
+    };
+    setTasks(prev => [...prev, newTask]);
+    closeDetailModal();
+  };
+
+  const renderItem: ListRenderItem<Task> = ({ item }) => (
+    <ThemedView style={styles.item}>
+      <Checkbox style={styles.checkbox} />
+      <View>
+        <Text style={styles.title}>{item.title}</Text>
+      </View>
+    </ThemedView>
+  );
 
   return (
     <ThemedView style={styles.stepContainer}>
@@ -43,47 +85,28 @@ export default function HomeScreen() {
 
         <View style={styles.listContainer}>
           <FlatList
-            data={DATA}
+            data={tasks}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <ThemedView style={styles.item}>
-                <Checkbox style={styles.checkbox} />
-                <Text style={styles.title}>{item.title}</Text>
-              </ThemedView>
-            )}
+            renderItem={renderItem}
             showsVerticalScrollIndicator={true}
           />
         </View>
 
-        {/* Botão "+ Novo afazer" */}
-        <TouchableOpacity style={styles.newTaskButton} onPress={togglePopup}>
+        <TouchableOpacity style={styles.newTaskButton} onPress={openTypeModal}>
           <>
-            <Image
-              source={require('@/assets/images/maisIcon.png')}
-              style={styles.iconLeft}
-            />
+            <Image source={require('@/assets/images/maisIcon.png')} style={styles.iconLeft} />
             <Text style={styles.newTaskText}>Novo afazer</Text>
           </>
         </TouchableOpacity>
 
-        {/* Pop-up de escolha de tipo de afazer */}
-        <Modal
-          visible={isPopupVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={togglePopup}
-        >
-          <TaskTypePopUp
-            visible={isPopupVisible} // booleano do seu estado
-            onClose={togglePopup} // função para fechar o popup
-            onSelect={(type) => {
-              console.log('Tipo selecionado:', type);
-              // aqui você pode fazer algo com 'tarefa' ou 'compromisso'
-              togglePopup(); // opcional: fecha o popup após a escolha
-            }}
-          />
+        <TaskTypePopUp visible={showTypeModal} onClose={closeTypeModal} onSelect={handleSelectType} />
 
-        </Modal>
+        <TaskDetailPopUp
+          visible={showDetailModal}
+          onClose={closeDetailModal}
+          onSubmit={handleSubmitDetail}
+          type={selectedType === '' ? 'tarefa' : selectedType}
+        />
       </ThemedView>
     </ThemedView>
   );
