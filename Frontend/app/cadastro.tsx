@@ -1,18 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { Image, StyleSheet, TouchableOpacity, TextInput, View, Alert } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, TextInput, View, Alert, ActivityIndicator } from 'react-native';
 import { useRouter, Link } from 'expo-router';
+import { Asset } from 'expo-asset';
 
-export default function cadastroScreen() {
+export default function CadastroScreen() {
   const router = useRouter();
-  
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(true);
 
-    const handleCreateUser = async () => {
+  useEffect(() => {
+    async function loadAssets() {
+      await Asset.loadAsync([
+        require('@/assets/images/title.png'),
+        require('@/assets/images/profile.png'),
+        require('@/assets/images/email.png'),
+        require('@/assets/images/padlock.png'),
+      ]);
+      setLoading(false);
+    }
+    loadAssets();
+  }, []);
+
+  const handleCreateUser = async () => {
     if (!name || !email || !password || !confirmPassword) {
       Alert.alert('Erro', 'Preencha todos os campos.');
       return;
@@ -23,7 +38,7 @@ export default function cadastroScreen() {
     }
 
     try {
-      const response = await fetch('http://192.168.255.112:3000/users', {  // ajuste a URL conforme seu backend
+      const response = await fetch('http://192.168.255.112:3000/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
@@ -37,28 +52,37 @@ export default function cadastroScreen() {
         Alert.alert('Erro', data.message || 'Erro ao criar usuário');
       }
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível conectar ao servidor.');
+      Alert.alert('Erro', 'Aguardando conexão.');
     }
   };
 
+  if (loading) {
+    return (
+      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+        <ThemedText>Carregando...</ThemedText>
+      </ThemedView>
+    );
+  }
+
   return (
-     <ThemedView style={styles.stepContainer}>
-      <Image 
+    <ThemedView style={styles.stepContainer}>
+      <Image
         source={require('@/assets/images/title.png')}
         style={styles.TaskTamerLogo}
       />
       <ThemedText style={styles.titleContainer}>Cadastro</ThemedText>
 
       <View style={styles.inputSpacing} />
-      
+
       <ThemedView style={styles.inputContainer}>
-        <Image 
+        <Image
           source={require('@/assets/images/profile.png')}
           style={styles.icon}
         />
-        <TextInput 
-          style={styles.input} 
-          placeholder="Nome" 
+        <TextInput
+          style={styles.input}
+          placeholder="Nome"
           placeholderTextColor="#ffff"
           value={name}
           onChangeText={setName}
@@ -66,13 +90,13 @@ export default function cadastroScreen() {
       </ThemedView>
 
       <ThemedView style={styles.inputContainer}>
-        <Image 
+        <Image
           source={require('@/assets/images/email.png')}
           style={styles.icon}
         />
-        <TextInput 
-          style={styles.input} 
-          placeholder="E-mail" 
+        <TextInput
+          style={styles.input}
+          placeholder="E-mail"
           placeholderTextColor="#ffff"
           value={email}
           onChangeText={setEmail}
@@ -82,13 +106,13 @@ export default function cadastroScreen() {
       </ThemedView>
 
       <ThemedView style={styles.inputContainer}>
-        <Image 
+        <Image
           source={require('@/assets/images/padlock.png')}
           style={styles.icon}
         />
-        <TextInput 
-          style={styles.input} 
-          placeholder="Senha" 
+        <TextInput
+          style={styles.input}
+          placeholder="Senha"
           placeholderTextColor="#ffff"
           value={password}
           onChangeText={setPassword}
@@ -97,13 +121,13 @@ export default function cadastroScreen() {
       </ThemedView>
 
       <ThemedView style={styles.inputContainer}>
-        <Image 
+        <Image
           source={require('@/assets/images/padlock.png')}
           style={styles.icon}
         />
-        <TextInput 
-          style={styles.input} 
-          placeholder="Confirmar senha" 
+        <TextInput
+          style={styles.input}
+          placeholder="Confirmar senha"
           placeholderTextColor="#ffff"
           value={confirmPassword}
           onChangeText={setConfirmPassword}
@@ -147,15 +171,15 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   TaskTamerLogo: {
-    width: '80%', 
+    width: '80%',
     resizeMode: 'contain',
-    marginBottom: 0, // <-- Igual ao login agora
+    marginBottom: 0,
   },
   button: {
     backgroundColor: 'black',
     paddingVertical: 8,
     paddingHorizontal: 45,
-    borderRadius: 25, 
+    borderRadius: 25,
   },
   buttonText: {
     color: 'white',
@@ -163,7 +187,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     fontFamily: 'Poppins_400Regular',
-  }, 
+  },
   input: {
     flex: 1,
     height: 45,
@@ -195,22 +219,22 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 1,
     marginVertical: 30,
-    marginTop: 170 // <-- Igual ao login agora
+    marginTop: 170,
   },
   text: {
     color: 'black',
     fontFamily: 'Poppins_400Regular',
-    fontSize: 15
+    fontSize: 15,
   },
   criar: {
     fontFamily: 'Poppins_400Regular',
     color: '#98B88F',
-    fontSize: 15
+    fontSize: 15,
   },
   inputSpacing: {
     flex: 0.1,
   },
   buttonSpacing: {
-    flex: 0.2, // <-- Igual ao login agora
+    flex: 0.2,
   },
 });

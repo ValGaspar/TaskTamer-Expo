@@ -1,23 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, Link } from 'expo-router';
-import { Image, StyleSheet, TouchableOpacity, TextInput, View, Alert } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, TextInput, View, Alert, ActivityIndicator } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { Asset } from 'expo-asset';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {
   const router = useRouter();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loadingAssets, setLoadingAssets] = useState(true);
+  const [loadingLogin, setLoadingLogin] = useState(false);
 
-   const handleLogin = async () => {
+  useEffect(() => {
+    async function loadAssets() {
+      await Asset.loadAsync([
+        require('@/assets/images/title.png'),
+        require('@/assets/images/email.png'),
+        require('@/assets/images/padlock.png'),
+      ]);
+      setLoadingAssets(false);
+    }
+    loadAssets();
+  }, []);
+
+  const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Erro', 'Preencha todos os campos.');
       return;
     }
 
+    setLoadingLogin(true);
     try {
-      const response = await fetch('http://192.168.255.112:3000/auth', {
+      const response = await fetch('https://tasktamer-expo.onrender.com/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -26,19 +43,33 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (response.ok) {
+        // Salva o nome do usuário no AsyncStorage
+        await AsyncStorage.setItem('userName', data.name);
+
         Alert.alert('Sucesso', 'Login realizado com sucesso!');
         router.push('/home');
       } else {
         Alert.alert('Erro', data.message || 'Credenciais inválidas.');
       }
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível conectar ao servidor.');
+      Alert.alert('Erro', 'Aguardando conexão.');
+    } finally {
+      setLoadingLogin(false);
     }
   };
 
+  if (loadingAssets) {
+    return (
+      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+        <ThemedText>Carregando...</ThemedText>
+      </ThemedView>
+    );
+  }
+
   return (
     <ThemedView style={styles.stepContainer}>
-      <Image 
+      <Image
         source={require('@/assets/images/title.png')}
         style={styles.TaskTamerLogo}
       />
@@ -47,13 +78,13 @@ export default function LoginScreen() {
       <View style={styles.inputSpacing} />
 
       <ThemedView style={styles.inputContainer}>
-        <Image 
+        <Image
           source={require('@/assets/images/email.png')}
           style={styles.icon}
         />
-        <TextInput 
-          style={styles.input} 
-          placeholder="E-mail" 
+        <TextInput
+          style={styles.input}
+          placeholder="E-mail"
           placeholderTextColor="#ffff"
           value={email}
           onChangeText={setEmail}
@@ -63,13 +94,13 @@ export default function LoginScreen() {
       </ThemedView>
 
       <ThemedView style={styles.inputContainer}>
-        <Image 
+        <Image
           source={require('@/assets/images/padlock.png')}
           style={styles.icon}
         />
-        <TextInput 
-          style={styles.input} 
-          placeholder="Senha" 
+        <TextInput
+          style={styles.input}
+          placeholder="Senha"
           placeholderTextColor="#ffff"
           value={password}
           onChangeText={setPassword}
@@ -79,8 +110,16 @@ export default function LoginScreen() {
 
       <View style={styles.buttonSpacing} />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <ThemedText style={styles.buttonText}>Entrar</ThemedText>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleLogin}
+        disabled={loadingLogin}
+      >
+        {loadingLogin ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <ThemedText style={styles.buttonText}>Entrar</ThemedText>
+        )}
       </TouchableOpacity>
 
       <ThemedView style={styles.line} />
@@ -110,15 +149,17 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   TaskTamerLogo: {
-    width: '80%', 
+    width: '80%',
     resizeMode: 'contain',
-    marginBottom: 150, 
+    marginBottom: 150,
   },
   button: {
     backgroundColor: 'black',
     paddingVertical: 8,
     paddingHorizontal: 45,
-    borderRadius: 25, 
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonText: {
     color: 'white',
@@ -126,7 +167,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     fontFamily: 'Poppins_400Regular',
-  }, 
+  },
   input: {
     flex: 1,
     height: 45,
@@ -136,7 +177,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     fontSize: 16,
     backgroundColor: '#98B88F',
-    fontFamily: 'Poppins_400Regular'
+    fontFamily: 'Poppins_400Regular',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -146,7 +187,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     width: '75%',
-    marginBottom: 20
+    marginBottom: 20,
   },
   icon: {
     width: 20,
@@ -158,17 +199,17 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 1,
     marginVertical: 30,
-    marginTop: 170
+    marginTop: 170,
   },
   text: {
     color: 'black',
     fontFamily: 'Poppins_400Regular',
-    fontSize: 15
+    fontSize: 15,
   },
   criar: {
     fontFamily: 'Poppins_400Regular',
     color: '#98B88F',
-    fontSize: 15
+    fontSize: 15,
   },
   inputSpacing: {
     flex: 0.1,
