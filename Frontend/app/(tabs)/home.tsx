@@ -1,25 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import {
-  StyleSheet,
-  Dimensions,
-  FlatList,
-  Text,
-  TouchableOpacity,
-  View,
-  Image,
-} from 'react-native';
+import { StyleSheet, Dimensions, FlatList, Text, TouchableOpacity, View, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
 import { Limelight_400Regular } from '@expo-google-fonts/limelight';
 import { LibreBaskerville_400Regular } from '@expo-google-fonts/libre-baskerville';
 import { Poppins_400Regular } from '@expo-google-fonts/poppins';
 import { ListRenderItem } from 'react-native';
-
 import { ThemedView } from '@/components/ThemedView';
 import { CircularProgress } from '@/components/CircularProgress';
 import { TaskDetailPopUp } from '@/components/TaskDetailPopUp';
-import { TaskItem } from '@/components/TaskItem';  // Importa o novo componente
-
+import { TaskItem } from '@/components/TaskItem';
 const { width } = Dimensions.get('window');
 
 type Task = {
@@ -131,10 +121,17 @@ export default function HomeScreen() {
 
   if (!fontsLoaded) return null;
 
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(task => task.done).length;
+  const progressPercent = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+
   return (
     <ThemedView style={styles.stepContainer}>
       <ThemedView style={styles.Container}>
-        <CircularProgress fill={80} />
+        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+          <CircularProgress fill={progressPercent} />
+        </View>
+
 
         <ThemedView style={styles.todayBox}>
           <Text style={styles.todayText}>Hoje</Text>

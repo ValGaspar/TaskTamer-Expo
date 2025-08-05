@@ -1,25 +1,29 @@
 import { StyleSheet } from 'react-native';
-import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 export default function TabTwoScreen() {
   return (
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText style={styles.titleContainer}>Página de Categorias</ThemedText>
-      </ThemedView>
+    <ThemedView style={styles.stepContainer}>
+      <ThemedView style={styles.box} />
+      <ThemedView style={styles.box} />
+      <ThemedView style={styles.box} />
+      <ThemedView style={styles.box} />
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   stepContainer: {
-    display: 'flex',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    padding: 25,
-    height: '100%'
+    flex: 1,
+    justifyContent: 'center', 
+    alignItems: 'center',   
+    backgroundColor: 'white',
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  box: {
+    backgroundColor: '#98B88F',
+    borderRadius: 10,
+    padding: 65,       
+    minWidth: 300,
+    marginBottom: 30, 
   },
 });
