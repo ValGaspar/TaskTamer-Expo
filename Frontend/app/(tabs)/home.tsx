@@ -9,7 +9,6 @@ import { ListRenderItem } from 'react-native';
 
 import { ThemedView } from '@/components/ThemedView';
 import { CircularProgress } from '@/components/CircularProgress';
-import { TaskTypePopUp } from '@/components/TaskTypePopUp';
 import { TaskDetailPopUp } from '@/components/TaskDetailPopUp';
 
 const { width } = Dimensions.get('window');
@@ -20,7 +19,7 @@ type Task = {
   description?: string;
   date?: Date;
   priority?: string;
-  type: 'tarefa' | 'compromisso';
+  type: 'tarefa';
 };
 
 export default function HomeScreen() {
@@ -36,21 +35,10 @@ export default function HomeScreen() {
     { id: '3', title: 'Tarefa 3', type: 'tarefa' },
   ]);
 
-  const [showTypeModal, setShowTypeModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [selectedType, setSelectedType] = useState<'tarefa' | 'compromisso' | ''>('');
-
-  const openTypeModal = () => setShowTypeModal(true);
-  const closeTypeModal = () => setShowTypeModal(false);
 
   const openDetailModal = () => setShowDetailModal(true);
   const closeDetailModal = () => setShowDetailModal(false);
-
-  const handleSelectType = (type: 'tarefa' | 'compromisso') => {
-    setSelectedType(type);
-    closeTypeModal();
-    setTimeout(() => openDetailModal(), 200);
-  };
 
   const handleSubmitDetail = (data: { title: string; description: string; date: Date; priority: string }) => {
     const newTask: Task = {
@@ -59,7 +47,7 @@ export default function HomeScreen() {
       description: data.description,
       date: data.date,
       priority: data.priority,
-      type: selectedType as 'tarefa' | 'compromisso',
+      type: 'tarefa',
     };
     setTasks(prev => [...prev, newTask]);
     closeDetailModal();
@@ -92,20 +80,18 @@ export default function HomeScreen() {
           />
         </View>
 
-        <TouchableOpacity style={styles.newTaskButton} onPress={openTypeModal}>
+        <TouchableOpacity style={styles.newTaskButton} onPress={openDetailModal}>
           <>
             <Image source={require('@/assets/images/maisIcon.png')} style={styles.iconLeft} />
             <Text style={styles.newTaskText}>Novo afazer</Text>
           </>
         </TouchableOpacity>
 
-        <TaskTypePopUp visible={showTypeModal} onClose={closeTypeModal} onSelect={handleSelectType} />
-
         <TaskDetailPopUp
           visible={showDetailModal}
           onClose={closeDetailModal}
           onSubmit={handleSubmitDetail}
-          type={selectedType === '' ? 'tarefa' : selectedType}
+          type="tarefa"
         />
       </ThemedView>
     </ThemedView>

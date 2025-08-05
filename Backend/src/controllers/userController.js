@@ -1,23 +1,47 @@
+const bcrypt = require('bcrypt');
 const User = require('../models/userModel');
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select('-password'); 
-    res.json(users); 
+    const users = await User.find().select('-password');
+    res.json(users);
   } catch (error) {
     res.status(500).json({ message: 'Erro ao buscar usuários', error });
   }
 };
 
 const createUser = async (req, res) => {
+  const { name, email, password } = req.body;
+
+  // Validação simples senha
+  if (!password || password.length < 6) {
+    return res.status(400).json({ message: 'A senha deve ter no mínimo 6 caracteres.' });
+  }
+
   try {
-    const newUser = new User(req.body);
+    // Verifica e-mail cadastrado
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ message: 'E-mail já cadastrado.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Cria o novo usuário com senha criptografada
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword
+    });
+
     await newUser.save();
+
     res.status(201).json({ id: newUser._id, name: newUser.name, email: newUser.email });
   } catch (error) {
     res.status(400).json({ message: 'Erro ao criar usuário', error });
   }
 };
+
 
 const updateUser = async (req, res) => {
   try {
