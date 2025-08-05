@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, Link } from 'expo-router';
-import { Image, StyleSheet, TouchableOpacity, TextInput, View, Alert, ActivityIndicator } from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  View,
+  Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Asset } from 'expo-asset';
@@ -43,10 +55,8 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        // Salva o nome do usuário no AsyncStorage
         await AsyncStorage.setItem('userName', data.name);
-
-        Alert.alert('Sucesso', 'Login realizado com sucesso!');
+        // Alert.alert('Sucesso', 'Login realizado com sucesso!');
         router.push('/home');
       } else {
         Alert.alert('Erro', data.message || 'Credenciais inválidas.');
@@ -68,67 +78,74 @@ export default function LoginScreen() {
   }
 
   return (
-    <ThemedView style={styles.stepContainer}>
-      <Image
-        source={require('@/assets/images/title.png')}
-        style={styles.TaskTamerLogo}
-      />
-      <ThemedText style={styles.titleContainer}>Login</ThemedText>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ThemedView style={styles.stepContainer}>
+          <Image
+            source={require('@/assets/images/title.png')}
+            style={styles.TaskTamerLogo}
+          />
+          <ThemedText style={styles.titleContainer}>Login</ThemedText>
 
-      <View style={styles.inputSpacing} />
+          <View style={styles.inputSpacing} />
 
-      <ThemedView style={styles.inputContainer}>
-        <Image
-          source={require('@/assets/images/email.png')}
-          style={styles.icon}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="E-mail"
-          placeholderTextColor="#ffff"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-      </ThemedView>
+          <ThemedView style={styles.inputContainer}>
+            <Image
+              source={require('@/assets/images/email.png')}
+              style={styles.icon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="E-mail"
+              placeholderTextColor="#ffff"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </ThemedView>
 
-      <ThemedView style={styles.inputContainer}>
-        <Image
-          source={require('@/assets/images/padlock.png')}
-          style={styles.icon}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Senha"
-          placeholderTextColor="#ffff"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-      </ThemedView>
+          <ThemedView style={styles.inputContainer}>
+            <Image
+              source={require('@/assets/images/padlock.png')}
+              style={styles.icon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Senha"
+              placeholderTextColor="#ffff"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+          </ThemedView>
 
-      <View style={styles.buttonSpacing} />
+          <View style={styles.buttonSpacing} />
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleLogin}
-        disabled={loadingLogin}
-      >
-        {loadingLogin ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <ThemedText style={styles.buttonText}>Entrar</ThemedText>
-        )}
-      </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleLogin}
+            disabled={loadingLogin}
+          >
+            {loadingLogin ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <ThemedText style={styles.buttonText}>Entrar</ThemedText>
+            )}
+          </TouchableOpacity>
 
-      <ThemedView style={styles.line} />
+          <ThemedView style={styles.line} />
 
-      <ThemedText style={styles.text}>
-        Não tem uma conta? Toque para
-        <Link style={styles.criar} href='/cadastro'> Criar</Link>
-      </ThemedText>
-    </ThemedView>
+          <ThemedText style={styles.text}>
+            Não tem uma conta? Toque para
+            <Link style={styles.criar} href='/cadastro'> Criar</Link>
+          </ThemedText>
+        </ThemedView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 

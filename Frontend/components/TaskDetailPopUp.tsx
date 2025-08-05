@@ -1,34 +1,26 @@
-import React, { useState } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
-  Image,
-  Dimensions,
-} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import {
-  useFonts,
-  Poppins_400Regular,
-  Poppins_500Medium,
-  Poppins_600SemiBold,
-} from '@expo-google-fonts/poppins';
+import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
+import { Asset } from 'expo-asset';
+
+type TaskData = {
+  title: string;
+  description: string;
+  date: Date;
+  priority: string;
+};
 
 type Props = {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (data: {
-    title: string;
-    description: string;
-    date: Date;
-    priority: string;
-  }) => void;
+  onSubmit: (data: TaskData) => void;
   type: 'tarefa' | 'compromisso';
+  initialData?: TaskData | null;
 };
+
+const calendarIcon = require('@/assets/images/calendarIcon.png');
+const etiquetaIcon = require('@/assets/images/etiquetaIcon.png');
 
 const PRIORITY_OPTIONS = [
   'Prioridade Alta',
@@ -41,6 +33,7 @@ export const TaskDetailPopUp = ({
   onClose,
   onSubmit,
   type,
+  initialData = null,
 }: Props) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -48,7 +41,12 @@ export const TaskDetailPopUp = ({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [priority, setPriority] = useState(PRIORITY_OPTIONS[0]);
   const [showPriorityOptions, setShowPriorityOptions] = useState(false);
-  const [priorityButtonLayout, setPriorityButtonLayout] = useState<{x: number, y: number, width: number, height: number} | null>(null);
+  const [priorityButtonLayout, setPriorityButtonLayout] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -56,16 +54,26 @@ export const TaskDetailPopUp = ({
     Poppins_600SemiBold,
   });
 
+  // Pré-carregamento das imagens para evitar delay
+  useEffect(() => {
+    Asset.loadAsync([calendarIcon, etiquetaIcon]);
+  }, []);
+
+  useEffect(() => {
+    if (visible) {
+      setTitle(initialData?.title || '');
+      setDescription(initialData?.description || '');
+      setDate(initialData?.date || new Date());
+      setPriority(initialData?.priority || PRIORITY_OPTIONS[0]);
+      setShowPriorityOptions(false);
+    }
+  }, [visible, initialData]);
+
   if (!fontsLoaded) return null;
 
   const handleSubmit = () => {
     if (title.trim() === '') return;
     onSubmit({ title, description, date, priority });
-    setTitle('');
-    setDescription('');
-    setDate(new Date());
-    setPriority(PRIORITY_OPTIONS[0]);
-    setShowPriorityOptions(false);
   };
 
   const handleConfirmDate = (selectedDate: Date) => {
@@ -78,7 +86,7 @@ export const TaskDetailPopUp = ({
   };
 
   const togglePriorityOptions = () => {
-    setShowPriorityOptions(prev => !prev);
+    setShowPriorityOptions((prev) => !prev);
   };
 
   const selectPriority = (option: string) => {
@@ -86,107 +94,109 @@ export const TaskDetailPopUp = ({
     setShowPriorityOptions(false);
   };
 
-  // Pega posição e tamanho do botão para posicionar dropdown
   const onPriorityButtonLayout = (event: any) => {
     setPriorityButtonLayout(event.nativeEvent.layout);
   };
 
   return (
     <Modal animationType="fade" transparent visible={visible} onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.popup}>
-          <Text style={styles.title}>Nova {type === 'tarefa' ? 'Tarefa' : 'Compromisso'}</Text>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.overlay}>
+          <View style={styles.popup}>
+            <Text style={styles.title}>
+              {initialData ? 'Editar ' : 'Nova '} {type === 'tarefa' ? 'Tarefa' : 'Compromisso'}
+            </Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Título"
-            placeholderTextColor="#999"
-            value={title}
-            onChangeText={setTitle}
-          />
+            <TextInput
+              style={styles.input}
+              placeholder="Título"
+              placeholderTextColor="#999"
+              value={title}
+              onChangeText={setTitle}
+            />
 
-          <TextInput
-            style={[styles.input, styles.textarea]}
-            placeholder="Descrição"
-            placeholderTextColor="#999"
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            numberOfLines={4}
-          />
+            <TextInput
+              style={[styles.input, styles.textarea]}
+              placeholder="Descrição"
+              placeholderTextColor="#999"
+              value={description}
+              onChangeText={setDescription}
+              multiline
+              numberOfLines={4}
+            />
 
-          <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.inputButton}>
-            <Image source={require('@/assets/images/calendarIcon.png')} style={styles.icon} />
-            <Text style={styles.inputButtonText}>{date.toLocaleDateString('pt-BR')}</Text>
-          </TouchableOpacity>
-
-          <DateTimePickerModal
-            isVisible={showDatePicker}
-            mode="date"
-            onConfirm={handleConfirmDate}
-            onCancel={handleCancelDate}
-            minimumDate={new Date()}
-            confirmTextIOS="Confirmar"
-            cancelTextIOS="Cancelar"
-          />
-
-          {/* Campo Prioridade com dropdown flutuante */}
-          <View style={{ width: '100%', zIndex: 10 }}>
-            <TouchableOpacity
-              onPress={togglePriorityOptions}
-              style={styles.inputButton}
-              onLayout={onPriorityButtonLayout}
-              activeOpacity={0.7}
-            >
-              <Image source={require('@/assets/images/etiquetaIcon.png')} style={styles.icon} />
-              <Text style={styles.inputButtonText}>{priority}</Text>
+            <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.inputButton}>
+              <Image source={calendarIcon} style={styles.icon} />
+              <Text style={styles.inputButtonText}>{date.toLocaleDateString('pt-BR')}</Text>
             </TouchableOpacity>
 
-            {showPriorityOptions && priorityButtonLayout && (
-              <View
-                style={[
-                  styles.priorityDropdown,
-                  {
-                    position: 'absolute',
-                    top: priorityButtonLayout.height + 4,
-                    left: 0,
-                    width: priorityButtonLayout.width,
-                  },
-                ]}
+            <DateTimePickerModal
+              isVisible={showDatePicker}
+              mode="date"
+              onConfirm={handleConfirmDate}
+              onCancel={handleCancelDate}
+              minimumDate={new Date()}
+              confirmTextIOS="Confirmar"
+              cancelTextIOS="Cancelar"
+            />
+
+            <View style={{ width: '100%', zIndex: 10 }}>
+              <TouchableOpacity
+                onPress={togglePriorityOptions}
+                style={styles.inputButton}
+                onLayout={onPriorityButtonLayout}
+                activeOpacity={0.7}
               >
-                {PRIORITY_OPTIONS.map(option => (
-                  <TouchableOpacity
-                    key={option}
-                    onPress={() => selectPriority(option)}
-                    style={[
-                      styles.priorityOption,
-                      option === priority && styles.priorityOptionSelected,
-                    ]}
-                    activeOpacity={0.7}
-                  >
-                    <Text
+                <Image source={etiquetaIcon} style={styles.icon} />
+                <Text style={styles.inputButtonText}>{priority}</Text>
+              </TouchableOpacity>
+
+              {showPriorityOptions && priorityButtonLayout && (
+                <View
+                  style={[
+                    styles.priorityDropdown,
+                    {
+                      position: 'absolute',
+                      top: priorityButtonLayout.height + 4,
+                      left: 0,
+                      width: priorityButtonLayout.width,
+                    },
+                  ]}
+                >
+                  {PRIORITY_OPTIONS.map((option) => (
+                    <TouchableOpacity
+                      key={option}
+                      onPress={() => selectPriority(option)}
                       style={[
-                        styles.priorityOptionText,
-                        option === priority && styles.priorityOptionTextSelected,
+                        styles.priorityOption,
+                        option === priority && styles.priorityOptionSelected,
                       ]}
+                      activeOpacity={0.7}
                     >
-                      {option}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
+                      <Text
+                        style={[
+                          styles.priorityOptionText,
+                          option === priority && styles.priorityOptionTextSelected,
+                        ]}
+                      >
+                        {option}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+
+            <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
+              <Text style={styles.saveButtonText}>{initialData ? 'Confirmar' : 'Salvar'}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={onClose}>
+              <Text style={styles.cancelText}>Cancelar</Text>
+            </TouchableOpacity>
           </View>
-
-          <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
-            <Text style={styles.saveButtonText}>Salvar</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.cancelText}>Cancelar</Text>
-          </TouchableOpacity>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
@@ -204,7 +214,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     width: 300,
     alignItems: 'center',
-    // pra garantir que o zIndex funcione no Android
     elevation: 10,
   },
   title: {
@@ -253,7 +262,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     borderRadius: 8,
     paddingVertical: 4,
-    // sombra simples pra destacar
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,

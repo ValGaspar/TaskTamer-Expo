@@ -38,14 +38,14 @@ export default function CadastroScreen() {
     }
 
     try {
-      const response = await fetch('http://192.168.255.112:3000/users', {
+      const response = await fetch('https://tasktamer-expo.onrender.com/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
       });
 
       if (response.ok) {
-        Alert.alert('Sucesso', 'Usuário criado com sucesso!');
+        Alert.alert('Sucesso', 'Sua conta foi criada!');
         router.push('/home');
       } else {
         const data = await response.json();
