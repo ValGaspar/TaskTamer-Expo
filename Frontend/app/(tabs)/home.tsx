@@ -29,10 +29,11 @@ type Task = {
   priority?: string;
   done?: boolean;
   type: 'tarefa';
-  userId: string; // ID do usuário logado
+  userId: string;
 };
 
-const STORAGE_KEY = '@tasks_storage';
+// Função que gera a chave de storage de acordo com o usuário
+const STORAGE_KEY = (userId: string) => `@tasks_${userId}`;
 
 export default function HomeScreen() {
   const [fontsLoaded] = useFonts({
@@ -48,7 +49,7 @@ export default function HomeScreen() {
 
   const PRIORITY_ORDER = ['Prioridade Alta', 'Prioridade Média', 'Prioridade Baixa'];
 
-  // Carrega ID do usuário e tarefas
+  // Carrega ID do usuário e as tarefas específicas dele
   useEffect(() => {
     const loadData = async () => {
       const savedUserId = await AsyncStorage.getItem('userId');
@@ -59,31 +60,24 @@ export default function HomeScreen() {
 
       setUserId(savedUserId);
 
-      const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
-      const allTasks: Task[] = jsonValue ? JSON.parse(jsonValue) : [];
-
-      const userTasks = allTasks
-        .filter(t => t.userId === savedUserId)
-        .map(t => ({ ...t, date: t.date ? new Date(t.date) : undefined }));
+      const jsonValue = await AsyncStorage.getItem(STORAGE_KEY(savedUserId));
+      const userTasks: Task[] = jsonValue
+        ? JSON.parse(jsonValue).map((t: Task) => ({
+            ...t,
+            date: t.date ? new Date(t.date) : undefined,
+          }))
+        : [];
 
       setTasks(userTasks);
     };
     loadData();
   }, []);
 
-  // Salva tarefas mantendo todas do storage
+  // Salva tarefas no storage do usuário atual
   useEffect(() => {
     const saveTasks = async () => {
       if (!userId) return;
-
-      const allTasksJson = await AsyncStorage.getItem(STORAGE_KEY);
-      const allTasks: Task[] = allTasksJson ? JSON.parse(allTasksJson) : [];
-
-      // Remove tarefas antigas do mesmo usuário e adiciona as atuais
-      const filteredTasks = allTasks.filter(t => t.userId !== userId);
-      const updatedTasks = [...filteredTasks, ...tasks];
-
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTasks));
+      await AsyncStorage.setItem(STORAGE_KEY(userId), JSON.stringify(tasks));
     };
     saveTasks();
   }, [tasks, userId]);
@@ -113,10 +107,12 @@ export default function HomeScreen() {
     const priorityValue = data.priority || 'Prioridade Alta';
 
     if (editingTask) {
-      setTasks(prev => prev.map(t => (t.id === editingTask.id ? { ...t, ...data, priority: priorityValue } : t)));
+      setTasks(prev =>
+        prev.map(t => (t.id === editingTask.id ? { ...t, ...data, priority: priorityValue } : t)),
+      );
     } else {
       const newTask: Task = {
-        id: Date.now().toString(), // garante ID único
+        id: Date.now().toString(),
         type: 'tarefa',
         done: false,
         userId,
@@ -148,7 +144,7 @@ export default function HomeScreen() {
   const completedTasks = tasks.filter(task => task.done).length;
   const progressPercent = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
-  // Ordena tarefas por prioridade
+  // Ordenando tarefas 
   const sortedTasks = [...tasks].sort((a, b) => {
     const aIndex = a.priority ? PRIORITY_ORDER.indexOf(a.priority) : PRIORITY_ORDER.length;
     const bIndex = b.priority ? PRIORITY_ORDER.indexOf(b.priority) : PRIORITY_ORDER.length;
