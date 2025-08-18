@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Dimensions, FlatList, Text, TouchableOpacity, View, Image } from 'react-native';
+import {
+  StyleSheet,
+  Dimensions,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
+  Image,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
 import { Limelight_400Regular } from '@expo-google-fonts/limelight';
@@ -10,6 +18,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { CircularProgress } from '@/components/CircularProgress';
 import { TaskDetailPopUp } from '@/components/TaskDetailPopUp';
 import { TaskItem } from '@/components/TaskItem';
+
 const { width } = Dimensions.get('window');
 
 type Task = {
@@ -20,6 +29,7 @@ type Task = {
   priority?: string;
   done?: boolean;
   type: 'tarefa';
+  userId: string; // ID do usuário logado
 };
 
 const STORAGE_KEY = '@tasks_storage';
@@ -34,39 +44,55 @@ export default function HomeScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [userId, setUserId] = useState<string>(''); // usuário logado
 
+  const PRIORITY_ORDER = ['Prioridade Alta', 'Prioridade Média', 'Prioridade Baixa'];
+
+  // Carrega ID do usuário e tarefas
   useEffect(() => {
-    const loadTasks = async () => {
-      try {
-        const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
-        if (jsonValue != null) {
-          const loadedTasks: Task[] = JSON.parse(jsonValue);
-          const parsedTasks = loadedTasks.map(t => ({
-            ...t,
-            date: t.date ? new Date(t.date) : undefined,
-          }));
-          setTasks(parsedTasks);
-        }
-      } catch (e) {
-        console.error('Erro ao carregar tarefas:', e);
+    const loadData = async () => {
+      const savedUserId = await AsyncStorage.getItem('userId');
+      if (!savedUserId) {
+        console.warn('Nenhum usuário encontrado no AsyncStorage!');
+        return;
       }
+
+      setUserId(savedUserId);
+
+      const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
+      const allTasks: Task[] = jsonValue ? JSON.parse(jsonValue) : [];
+
+      const userTasks = allTasks
+        .filter(t => t.userId === savedUserId)
+        .map(t => ({ ...t, date: t.date ? new Date(t.date) : undefined }));
+
+      setTasks(userTasks);
     };
-    loadTasks();
+    loadData();
   }, []);
 
+  // Salva tarefas mantendo todas do storage
   useEffect(() => {
     const saveTasks = async () => {
-      try {
-        const jsonValue = JSON.stringify(tasks);
-        await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
-      } catch (e) {
-        console.error('Erro ao salvar tarefas:', e);
-      }
+      if (!userId) return;
+
+      const allTasksJson = await AsyncStorage.getItem(STORAGE_KEY);
+      const allTasks: Task[] = allTasksJson ? JSON.parse(allTasksJson) : [];
+
+      // Remove tarefas antigas do mesmo usuário e adiciona as atuais
+      const filteredTasks = allTasks.filter(t => t.userId !== userId);
+      const updatedTasks = [...filteredTasks, ...tasks];
+
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTasks));
     };
     saveTasks();
-  }, [tasks]);
+  }, [tasks, userId]);
 
   const openNewTaskModal = () => {
+    if (!userId) {
+      console.warn('Usuário ainda não carregado!');
+      return;
+    }
     setEditingTask(null);
     setShowDetailModal(true);
   };
@@ -78,36 +104,33 @@ export default function HomeScreen() {
 
   const closeDetailModal = () => setShowDetailModal(false);
 
-  const handleSubmitDetail = (data: {
-    title: string;
-    description: string;
-    date: Date;
-    priority: string;
-  }) => {
+  const handleSubmitDetail = (data: { title: string; description: string; date: Date; priority: string }) => {
+    if (!userId) {
+      console.warn('Usuário não definido ao salvar tarefa!');
+      return;
+    }
+
+    const priorityValue = data.priority || 'Prioridade Alta';
+
     if (editingTask) {
-      setTasks(prevTasks =>
-        prevTasks.map(t =>
-          t.id === editingTask.id ? { ...t, ...data } : t
-        )
-      );
+      setTasks(prev => prev.map(t => (t.id === editingTask.id ? { ...t, ...data, priority: priorityValue } : t)));
     } else {
       const newTask: Task = {
-        id: (tasks.length + 1).toString(),
+        id: Date.now().toString(), // garante ID único
         type: 'tarefa',
         done: false,
+        userId,
         ...data,
+        priority: priorityValue,
       };
       setTasks(prev => [...prev, newTask]);
     }
+
     setShowDetailModal(false);
   };
 
   const toggleDone = (id: string) => {
-    setTasks(prevTasks =>
-      prevTasks.map(task =>
-        task.id === id ? { ...task, done: !task.done } : task
-      )
-    );
+    setTasks(prev => prev.map(task => (task.id === id ? { ...task, done: !task.done } : task)));
   };
 
   const renderItem: ListRenderItem<Task> = ({ item }) => (
@@ -125,6 +148,13 @@ export default function HomeScreen() {
   const completedTasks = tasks.filter(task => task.done).length;
   const progressPercent = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
+  // Ordena tarefas por prioridade
+  const sortedTasks = [...tasks].sort((a, b) => {
+    const aIndex = a.priority ? PRIORITY_ORDER.indexOf(a.priority) : PRIORITY_ORDER.length;
+    const bIndex = b.priority ? PRIORITY_ORDER.indexOf(b.priority) : PRIORITY_ORDER.length;
+    return aIndex - bIndex;
+  });
+
   return (
     <ThemedView style={styles.stepContainer}>
       <ThemedView style={styles.Container}>
@@ -132,32 +162,29 @@ export default function HomeScreen() {
           <CircularProgress fill={progressPercent} />
         </View>
 
-
         <ThemedView style={styles.todayBox}>
           <Text style={styles.todayText}>Hoje</Text>
         </ThemedView>
 
         <View style={styles.listContainer}>
-          {!showDetailModal && (tasks.length === 0 ? (
-            <Text style={{ color: '#fff', textAlign: 'center', marginTop: 50, fontSize: 16 }}>
-              Lista vazia
-            </Text>
-          ) : (
-            <FlatList
-              data={tasks}
-              keyExtractor={item => item.id}
-              renderItem={renderItem}
-              showsVerticalScrollIndicator={true}
-            />
-          ))}
+          {!showDetailModal &&
+            (tasks.length === 0 ? (
+              <Text style={{ color: '#fff', textAlign: 'center', marginTop: 50, fontSize: 16 }}>
+                Lista vazia
+              </Text>
+            ) : (
+              <FlatList
+                data={sortedTasks}
+                keyExtractor={item => item.id}
+                renderItem={renderItem}
+                showsVerticalScrollIndicator
+              />
+            ))}
         </View>
 
-
         <TouchableOpacity style={styles.newTaskButton} onPress={openNewTaskModal}>
-          <>
-            <Image source={require('@/assets/images/maisIcon.png')} style={styles.iconLeft} />
-            <Text style={styles.newTaskText}>Novo afazer</Text>
-          </>
+          <Image source={require('@/assets/images/maisIcon.png')} style={styles.iconLeft} />
+          <Text style={styles.newTaskText}>Novo afazer</Text>
         </TouchableOpacity>
 
         <TaskDetailPopUp
@@ -168,12 +195,20 @@ export default function HomeScreen() {
           initialData={
             editingTask
               ? {
-                title: editingTask.title,
-                description: editingTask.description || '',
-                date: editingTask.date || new Date(),
-                priority: editingTask.priority || 'Prioridade Alta',
-              }
+                  title: editingTask.title,
+                  description: editingTask.description || '',
+                  date: editingTask.date || new Date(),
+                  priority: editingTask.priority || 'Prioridade Alta',
+                }
               : null
+          }
+          onDelete={
+            editingTask
+              ? () => {
+                  setTasks(prev => prev.filter(t => t.id !== editingTask.id));
+                  setShowDetailModal(false);
+                }
+              : undefined
           }
         />
       </ThemedView>

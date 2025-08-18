@@ -12,7 +12,8 @@ export default function CadastroScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loadingAssets, setLoadingAssets] = useState(true);
+  const [loadingCreate, setLoadingCreate] = useState(false);
 
   useEffect(() => {
     async function loadAssets() {
@@ -22,7 +23,7 @@ export default function CadastroScreen() {
         require('@/assets/images/email.png'),
         require('@/assets/images/padlock.png'),
       ]);
-      setLoading(false);
+      setLoadingAssets(false);
     }
     loadAssets();
   }, []);
@@ -37,6 +38,7 @@ export default function CadastroScreen() {
       return;
     }
 
+    setLoadingCreate(true);
     try {
       const response = await fetch('https://tasktamer-expo.onrender.com/users', {
         method: 'POST',
@@ -53,10 +55,12 @@ export default function CadastroScreen() {
       }
     } catch (error) {
       Alert.alert('Erro', 'Aguardando conexão.');
+    } finally {
+      setLoadingCreate(false);
     }
   };
 
-  if (loading) {
+  if (loadingAssets) {
     return (
       <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />
@@ -137,13 +141,19 @@ export default function CadastroScreen() {
 
       <View style={styles.buttonSpacing} />
 
-      <TouchableOpacity style={styles.button} onPress={handleCreateUser}>
-        <ThemedText style={styles.buttonText}>
-          Criar
-        </ThemedText>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleCreateUser}
+        disabled={loadingCreate}
+      >
+        {loadingCreate ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <ThemedText style={styles.buttonText}>Criar</ThemedText>
+        )}
       </TouchableOpacity>
 
-      <ThemedView style={styles.line}></ThemedView>
+      <ThemedView style={styles.line} />
 
       <ThemedText style={styles.text}>
         Já tem uma conta? Toque para

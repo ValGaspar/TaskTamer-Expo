@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Keyboard, TouchableWithoutFeedback, Alert } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
 import { Asset } from 'expo-asset';
@@ -17,6 +17,7 @@ type Props = {
   onSubmit: (data: TaskData) => void;
   type: 'tarefa' | 'compromisso';
   initialData?: TaskData | null;
+  onDelete?: () => void;
 };
 
 const calendarIcon = require('@/assets/images/calendarIcon.png');
@@ -34,19 +35,15 @@ export const TaskDetailPopUp = ({
   onSubmit,
   type,
   initialData = null,
+  onDelete,
 }: Props) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [priority, setPriority] = useState(PRIORITY_OPTIONS[0]);
+  const [priority, setPriority] = useState('');
   const [showPriorityOptions, setShowPriorityOptions] = useState(false);
-  const [priorityButtonLayout, setPriorityButtonLayout] = useState<{
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  } | null>(null);
+  const [priorityButtonLayout, setPriorityButtonLayout] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -54,7 +51,6 @@ export const TaskDetailPopUp = ({
     Poppins_600SemiBold,
   });
 
-  // Pré-carregamento das imagens para evitar delay
   useEffect(() => {
     Asset.loadAsync([calendarIcon, etiquetaIcon]);
   }, []);
@@ -64,7 +60,7 @@ export const TaskDetailPopUp = ({
       setTitle(initialData?.title || '');
       setDescription(initialData?.description || '');
       setDate(initialData?.date || new Date());
-      setPriority(initialData?.priority || PRIORITY_OPTIONS[0]);
+      setPriority(initialData?.priority || '');
       setShowPriorityOptions(false);
     }
   }, [visible, initialData]);
@@ -72,31 +68,29 @@ export const TaskDetailPopUp = ({
   if (!fontsLoaded) return null;
 
   const handleSubmit = () => {
-    if (title.trim() === '') return;
+    if (title.trim() === '') {
+      Alert.alert('Atenção', 'O título é obrigatório.');
+      return;
+    }
+    if (!priority) {
+      Alert.alert('Atenção', 'Selecione um nível de prioridade.');
+      return;
+    }
     onSubmit({ title, description, date, priority });
+    onClose(); // FECHA 
   };
+
 
   const handleConfirmDate = (selectedDate: Date) => {
     setDate(selectedDate);
     setShowDatePicker(false);
   };
 
-  const handleCancelDate = () => {
-    setShowDatePicker(false);
-  };
+  const handleCancelDate = () => setShowDatePicker(false);
 
-  const togglePriorityOptions = () => {
-    setShowPriorityOptions((prev) => !prev);
-  };
-
-  const selectPriority = (option: string) => {
-    setPriority(option);
-    setShowPriorityOptions(false);
-  };
-
-  const onPriorityButtonLayout = (event: any) => {
-    setPriorityButtonLayout(event.nativeEvent.layout);
-  };
+  const togglePriorityOptions = () => setShowPriorityOptions(prev => !prev);
+  const selectPriority = (option: string) => { setPriority(option); setShowPriorityOptions(false); };
+  const onPriorityButtonLayout = (event: any) => setPriorityButtonLayout(event.nativeEvent.layout);
 
   return (
     <Modal animationType="fade" transparent visible={visible} onRequestClose={onClose}>
@@ -148,37 +142,26 @@ export const TaskDetailPopUp = ({
                 activeOpacity={0.7}
               >
                 <Image source={etiquetaIcon} style={styles.icon} />
-                <Text style={styles.inputButtonText}>{priority}</Text>
+                <Text style={[styles.inputButtonText, !priority && { color: '#999' }]}>
+                  {priority || 'Nível de Prioridade'}
+                </Text>
               </TouchableOpacity>
 
               {showPriorityOptions && priorityButtonLayout && (
-                <View
-                  style={[
-                    styles.priorityDropdown,
-                    {
-                      position: 'absolute',
-                      top: priorityButtonLayout.height + 4,
-                      left: 0,
-                      width: priorityButtonLayout.width,
-                    },
-                  ]}
-                >
-                  {PRIORITY_OPTIONS.map((option) => (
+                <View style={[styles.priorityDropdown, {
+                  position: 'absolute',
+                  top: priorityButtonLayout.height + 4,
+                  left: 0,
+                  width: priorityButtonLayout.width,
+                }]}>
+                  {PRIORITY_OPTIONS.map(option => (
                     <TouchableOpacity
                       key={option}
                       onPress={() => selectPriority(option)}
-                      style={[
-                        styles.priorityOption,
-                        option === priority && styles.priorityOptionSelected,
-                      ]}
+                      style={[styles.priorityOption, option === priority && styles.priorityOptionSelected]}
                       activeOpacity={0.7}
                     >
-                      <Text
-                        style={[
-                          styles.priorityOptionText,
-                          option === priority && styles.priorityOptionTextSelected,
-                        ]}
-                      >
+                      <Text style={[styles.priorityOptionText, option === priority && styles.priorityOptionTextSelected]}>
                         {option}
                       </Text>
                     </TouchableOpacity>
@@ -187,9 +170,30 @@ export const TaskDetailPopUp = ({
               )}
             </View>
 
-            <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
-              <Text style={styles.saveButtonText}>{initialData ? 'Confirmar' : 'Salvar'}</Text>
-            </TouchableOpacity>
+            {/* Confirmar e Excluir  */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginTop: 8 }}>
+              {initialData && onDelete && (
+                <TouchableOpacity
+                  style={[styles.deleteButton, { flex: 1, marginRight: 5 }]}
+                  onPress={() => {
+                    Alert.alert(
+                      'Excluir tarefa',
+                      'Tem certeza que deseja excluir esta tarefa?',
+                      [
+                        { text: 'Cancelar', style: 'cancel' },
+                        { text: 'Excluir', style: 'destructive', onPress: onDelete },
+                      ]
+                    );
+                  }}
+                >
+                  <Text style={styles.deleteButtonText}>Excluir</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity style={[styles.saveButton, { flex: 1, marginLeft: 5 }]} onPress={handleSubmit}>
+                <Text style={styles.saveButtonText}>{initialData ? 'Confirmar' : 'Salvar'}</Text>
+              </TouchableOpacity>
+            </View>
 
             <TouchableOpacity onPress={onClose}>
               <Text style={styles.cancelText}>Cancelar</Text>
@@ -289,11 +293,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     paddingVertical: 12,
     borderRadius: 8,
-    width: '100%',
     alignItems: 'center',
-    marginTop: 4,
   },
   saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'Poppins_500Medium',
+  },
+  deleteButton: {
+    backgroundColor: '#D86565',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  deleteButtonText: {
     color: '#fff',
     fontSize: 16,
     fontFamily: 'Poppins_500Medium',
