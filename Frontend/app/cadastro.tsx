@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { Image, StyleSheet, TouchableOpacity, TextInput, View, Alert, ActivityIndicator } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, TextInput, View, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useRouter, Link } from 'expo-router';
 import { Asset } from 'expo-asset';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function CadastroScreen() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function CadastroScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [erroSenha, setErroSenha] = useState('');
   const [loadingAssets, setLoadingAssets] = useState(true);
   const [loadingCreate, setLoadingCreate] = useState(false);
 
@@ -26,16 +28,37 @@ export default function CadastroScreen() {
       setLoadingAssets(false);
     }
     loadAssets();
+
+    // Limpa campos quando entra na tela
+    setName('');
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setErroSenha('');
   }, []);
+
+  const validarSenha = (senha: string) => {
+    // Pelo menos 6 caracteres, pelo menos 1 letra e 1 número
+    const regex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+    return regex.test(senha);
+  };
 
   const handleCreateUser = async () => {
     if (!name || !email || !password || !confirmPassword) {
       Alert.alert('Erro', 'Preencha todos os campos.');
       return;
     }
+
     if (password !== confirmPassword) {
       Alert.alert('Erro', 'As senhas não coincidem.');
       return;
+    }
+
+    if (!validarSenha(password)) {
+      setErroSenha('A senha deve ter no mínimo 6 caracteres, incluindo pelo menos uma letra e um número.');
+      return;
+    } else {
+      setErroSenha('');
     }
 
     setLoadingCreate(true);
@@ -46,11 +69,22 @@ export default function CadastroScreen() {
         body: JSON.stringify({ name, email, password }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
+        // Salva no AsyncStorage
+        await AsyncStorage.setItem('userName', data.name);
+        await AsyncStorage.setItem('userId', data.id);
+
+        // Limpa campos após sucesso
+        setName('');
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+
         Alert.alert('Sucesso', 'Sua conta foi criada!');
         router.push('/home');
       } else {
-        const data = await response.json();
         Alert.alert('Erro', data.message || 'Erro ao criar usuário');
       }
     } catch (error) {
@@ -70,96 +104,80 @@ export default function CadastroScreen() {
   }
 
   return (
-    <ThemedView style={styles.stepContainer}>
-      <Image
-        source={require('@/assets/images/title.png')}
-        style={styles.TaskTamerLogo}
-      />
-      <ThemedText style={styles.titleContainer}>Cadastro</ThemedText>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ThemedView style={styles.stepContainer}>
+          <Image source={require('@/assets/images/title.png')} style={styles.TaskTamerLogo} />
+          <ThemedText style={styles.titleContainer}>Cadastro</ThemedText>
 
-      <View style={styles.inputSpacing} />
+          <View style={styles.inputSpacing} />
 
-      <ThemedView style={styles.inputContainer}>
-        <Image
-          source={require('@/assets/images/profile.png')}
-          style={styles.icon}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Nome"
-          placeholderTextColor="#ffff"
-          value={name}
-          onChangeText={setName}
-        />
-      </ThemedView>
+          <ThemedView style={styles.inputContainer}>
+            <Image source={require('@/assets/images/profile.png')} style={styles.icon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Nome"
+              placeholderTextColor="#fff"
+              value={name}
+              onChangeText={setName}
+            />
+          </ThemedView>
 
-      <ThemedView style={styles.inputContainer}>
-        <Image
-          source={require('@/assets/images/email.png')}
-          style={styles.icon}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="E-mail"
-          placeholderTextColor="#ffff"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-      </ThemedView>
+          <ThemedView style={styles.inputContainer}>
+            <Image source={require('@/assets/images/email.png')} style={styles.icon} />
+            <TextInput
+              style={styles.input}
+              placeholder="E-mail"
+              placeholderTextColor="#fff"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </ThemedView>
 
-      <ThemedView style={styles.inputContainer}>
-        <Image
-          source={require('@/assets/images/padlock.png')}
-          style={styles.icon}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Senha"
-          placeholderTextColor="#ffff"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-      </ThemedView>
+          <ThemedView style={styles.inputContainer}>
+            <Image source={require('@/assets/images/padlock.png')} style={styles.icon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Senha"
+              placeholderTextColor="#fff"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+          </ThemedView>
 
-      <ThemedView style={styles.inputContainer}>
-        <Image
-          source={require('@/assets/images/padlock.png')}
-          style={styles.icon}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Confirmar senha"
-          placeholderTextColor="#ffff"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          secureTextEntry
-        />
-      </ThemedView>
+          <ThemedView style={styles.inputContainer}>
+            <Image source={require('@/assets/images/padlock.png')} style={styles.icon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Confirmar senha"
+              placeholderTextColor="#fff"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+            />
+          </ThemedView>
 
-      <View style={styles.buttonSpacing} />
+          {/* Mensagem de erro */}
+          {erroSenha ? <ThemedText style={{ color: 'red', marginBottom: 10 }}>{erroSenha}</ThemedText> : null}
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleCreateUser}
-        disabled={loadingCreate}
-      >
-        {loadingCreate ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <ThemedText style={styles.buttonText}>Criar</ThemedText>
-        )}
-      </TouchableOpacity>
+          <View style={styles.buttonSpacing} />
 
-      <ThemedView style={styles.line} />
+          <TouchableOpacity style={styles.button} onPress={handleCreateUser} disabled={loadingCreate}>
+            {loadingCreate ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.buttonText}>Criar</ThemedText>}
+          </TouchableOpacity>
 
-      <ThemedText style={styles.text}>
-        Já tem uma conta? Toque para
-        <Link style={styles.criar} href='/login'> Entrar</Link>
-      </ThemedText>
-    </ThemedView>
+          <ThemedView style={styles.line} />
+
+          <ThemedText style={styles.text}>
+            Já tem uma conta? Toque para
+            <Link style={styles.criar} href="/login"> Entrar</Link>
+          </ThemedText>
+        </ThemedView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
