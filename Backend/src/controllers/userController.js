@@ -13,13 +13,16 @@ const getAllUsers = async (req, res) => {
 const createUser = async (req, res) => {
   const { name, email, password } = req.body;
 
-  // Validação simples senha
-  if (!password || password.length < 6) {
-    return res.status(400).json({ message: 'A senha deve ter no mínimo 6 caracteres.' });
+  // Validação de senha 
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{5,}$/;
+  if (!passwordRegex.test(password)) {
+    return res.status(400).json({
+      message: 'A senha deve ter no mínimo 5 caracteres, incluindo pelo menos uma letra e um número.'
+    });
   }
 
   try {
-    // Verifica e-mail cadastrado
+    // cadastro de e-mail
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({ message: 'E-mail já cadastrado.' });
@@ -27,7 +30,7 @@ const createUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Cria o novo usuário com senha criptografada
+    // novo user e senha 
     const newUser = new User({
       name,
       email,
@@ -41,7 +44,6 @@ const createUser = async (req, res) => {
     res.status(400).json({ message: 'Erro ao criar usuário', error });
   }
 };
-
 
 const updateUser = async (req, res) => {
   try {
