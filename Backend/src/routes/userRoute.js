@@ -5,12 +5,16 @@ const {
   updateUser,
   deleteUser
 } = require('../controllers/userController');
+const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get('/', getAllUsers);
-router.post('/', createUser);
-router.put('/:id', updateUser);
-router.delete('/:id', deleteUser);
+// Rota pública para registro
+router.post('/register', createUser);
+
+// Rotas protegidas
+router.get('/', authMiddleware, getAllUsers);
+router.put('/:id', authMiddleware, updateUser);
+router.delete('/:id', authMiddleware, deleteUser);
 
 module.exports = router;

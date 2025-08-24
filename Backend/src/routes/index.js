@@ -6,13 +6,13 @@ const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  res.send('API TaskTamer no ar!');
-});
+router.get('/', (req, res) => res.send('API TaskTamer no ar!'));
 
-router.use('/auth', authRoutes); 
+// rotas públicas
+router.use('/auth', authRoutes);       // login
+router.use('/users', userRoutes);      // register pública, outras protegidas
 
+// rotas protegidas
 router.use('/tasks', authMiddleware, taskRoutes);
-router.use('/users', authMiddleware, userRoutes);
 
 module.exports = router;
