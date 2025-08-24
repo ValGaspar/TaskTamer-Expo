@@ -85,9 +85,7 @@ export default function ProfileScreen() {
         <ThemedText style={styles.userName}>
           {userName || 'Nome do Perfil'}
         </ThemedText>
-        <ThemedText style={styles.userEmail}>
-          {userEmail || 'email@exemplo.com'}
-        </ThemedText>
+        
       </ThemedView>
 
       {/* Cards */}

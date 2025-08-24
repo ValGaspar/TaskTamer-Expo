@@ -21,7 +21,8 @@ const loginUser = async (req, res) => {
 
     res.json({
       message: 'Login realizado com sucesso',
-      token,
+      accessToken: token, // renomeado
+      refreshToken: token, 
       userId: user._id,
       name: user.name,
       email: user.email,
