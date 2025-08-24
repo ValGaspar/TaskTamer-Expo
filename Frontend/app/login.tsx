@@ -16,7 +16,7 @@ import {
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Asset } from 'expo-asset';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { login } from '@/services/authService';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -45,32 +45,14 @@ export default function LoginScreen() {
 
     setLoadingLogin(true);
     try {
-      const response = await fetch('https://tasktamer-expo.onrender.com/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-      // console.log('Login response:', data);
-
-      if (response.ok) {
-        // Salva usuário 
-        await AsyncStorage.setItem('userName', data.name);
-        await AsyncStorage.setItem('userId', data.userId);
-        if (data.email) {
-          await AsyncStorage.setItem('userEmail', data.email);
-        } else {
-          console.warn('Email retornado pelo backend é indefinido');
-        }
-
-        router.push('/home'); // só navega depois de salvar
-      } else {
-        Alert.alert('Erro', data.message || 'Credenciais inválidas.');
-      }
+      await login(email, password); // chama o service
+      router.push('/home'); // só navega depois de salvar os tokens
     } catch (error) {
-      Alert.alert('Erro', 'Aguardando conexão.');
-      console.error(error);
+      let errorMessage = 'Credenciais inválidas.';
+      if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = String((error as { message?: string }).message) || errorMessage;
+      }
+      Alert.alert('Erro', errorMessage);
     } finally {
       setLoadingLogin(false);
     }
@@ -138,83 +120,17 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  stepContainer: {
-    flex: 1,
-    alignItems: 'center',
-    backgroundColor: 'white',
-    paddingTop: 60,
-  },
-  TaskTamerLogo: {
-    width: '80%',
-    resizeMode: 'contain',
-    marginBottom: 150,
-  },
-  titleContainer: {
-    textAlign: 'center',
-    fontWeight: 'bold',
-    fontSize: 24,
-    lineHeight: 30, // garante espaço suficiente para caracteres altos
-    color: 'black',
-    marginBottom: 65, // mantém o mesmo espaçamento do botão e rodapé
-    fontFamily: 'Poppins_400Regular',
-  },
-  button: {
-    backgroundColor: 'black',
-    paddingVertical: 8,
-    paddingHorizontal: 45,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-    fontFamily: 'Poppins_400Regular',
-  },
-  input: {
-    flex: 1,
-    height: 45,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    fontSize: 16,
-    backgroundColor: '#98B88F',
-    fontFamily: 'Poppins_400Regular',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    width: '75%',
-    marginBottom: 20,
-  },
-  icon: {
-    width: 20,
-    height: 20,
-    marginRight: 10,
-  },
-  line: {
-    borderColor: 'black',
-    width: '100%',
-    height: 1,
-    marginVertical: 30,
-    marginTop: 170,
-  },
-  text: {
-    color: 'black',
-    fontFamily: 'Poppins_400Regular',
-    fontSize: 15,
-  },
-  criar: {
-    fontFamily: 'Poppins_400Regular',
-    color: '#98B88F',
-    fontSize: 15,
-  },
-  inputSpacing: {
-    flex: 0.1,
-  },
-  buttonSpacing: {
-    flex: 0.2,
-  },
+  stepContainer: { flex: 1, alignItems: 'center', backgroundColor: 'white', paddingTop: 60 },
+  TaskTamerLogo: { width: '80%', resizeMode: 'contain', marginBottom: 150 },
+  titleContainer: { textAlign: 'center', fontWeight: 'bold', fontSize: 24, lineHeight: 30, color: 'black', marginBottom: 65, fontFamily: 'Poppins_400Regular' },
+  button: { backgroundColor: 'black', paddingVertical: 8, paddingHorizontal: 45, borderRadius: 25, justifyContent: 'center', alignItems: 'center' },
+  buttonText: { color: 'white', fontSize: 18, fontWeight: 'bold', fontFamily: 'Poppins_400Regular' },
+  input: { flex: 1, height: 45, borderRadius: 8, paddingHorizontal: 10, fontSize: 16, backgroundColor: '#98B88F', fontFamily: 'Poppins_400Regular' },
+  inputContainer: { flexDirection: 'row', alignItems: 'center', borderRadius: 8, paddingHorizontal: 10, width: '75%', marginBottom: 20 },
+  icon: { width: 20, height: 20, marginRight: 10 },
+  line: { borderColor: 'black', width: '100%', height: 1, marginVertical: 30, marginTop: 170 },
+  text: { color: 'black', fontFamily: 'Poppins_400Regular', fontSize: 15 },
+  criar: { fontFamily: 'Poppins_400Regular', color: '#98B88F', fontSize: 15 },
+  inputSpacing: { flex: 0.1 },
+  buttonSpacing: { flex: 0.2 },
 });
