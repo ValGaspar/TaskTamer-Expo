@@ -1,33 +1,36 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const login = async (email, password) => {
-  const res = await fetch('https://tasktamer-expo.onrender.com/auth', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Login falhou');
+  try {
+    const res = await fetch('https://tasktamer-expo.onrender.com/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
 
-  await AsyncStorage.setItem('accessToken', data.accessToken);
-  await AsyncStorage.setItem('refreshToken', data.refreshToken);
-  await AsyncStorage.setItem('userName', data.name);
-  await AsyncStorage.setItem('userId', data.userId);
-  await AsyncStorage.setItem('userEmail', data.email || '');
-};
+    // Tenta ler a resposta como JSON
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      throw new Error('Resposta inesperada do servidor');
+    }
 
-export const refreshAccessToken = async () => {
-  const refreshToken = await AsyncStorage.getItem('refreshToken');
-  if (!refreshToken) return null;
+    if (!res.ok) {
+      // Aqui mostra a mensagem do backend, sem cair no "Network request failed"
+      throw new Error(data.message || 'Login falhou');
+    }
 
-  const res = await fetch('https://tasktamer-expo.onrender.com/auth/refresh-token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token: refreshToken }),
-  });
-  const data = await res.json();
-  if (!res.ok) return null;
+    // Salva os dados do usuário
+    await AsyncStorage.setItem('accessToken', data.accessToken);
+    await AsyncStorage.setItem('refreshToken', data.refreshToken);
+    await AsyncStorage.setItem('userName', data.name);
+    await AsyncStorage.setItem('userId', data.userId);
+    await AsyncStorage.setItem('userEmail', data.email || '');
 
-  await AsyncStorage.setItem('accessToken', data.accessToken);
-  return data.accessToken;
+    return data;
+  } catch (error) {
+    // Mostra apenas a mensagem real do erro
+    throw new Error(error.message || 'Erro desconhecido ao conectar ao servidor');
+  }
 };

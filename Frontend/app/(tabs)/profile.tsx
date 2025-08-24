@@ -1,3 +1,4 @@
+// screens/ProfileScreen.tsx
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -6,6 +7,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import EditProfilePopup from '@/components/EditProfilePopup';
+import { deleteAccount } from '@/services/userService';
 
 export default function ProfileScreen() {
   const [userName, setUserName] = useState('');
@@ -13,7 +15,6 @@ export default function ProfileScreen() {
   const [editVisible, setEditVisible] = useState(false);
   const router = useRouter();
 
-  // Carrega nome e email do usuário
   useEffect(() => {
     const loadUserData = async () => {
       const savedName = await AsyncStorage.getItem('userName');
@@ -24,30 +25,20 @@ export default function ProfileScreen() {
     loadUserData();
   }, []);
 
-  // Logout com confirmação
-  const handleLogout = () => {
-    Alert.alert(
-      'Confirmação',
-      'Você tem certeza que deseja sair da conta?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Sair',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await AsyncStorage.setItem('isLoggedIn', 'false');
-              router.replace('/login');
-            } catch (error) {
-              Alert.alert('Erro', 'Não foi possível sair da conta.');
-            }
-          },
+  const handleLogout = async () => {
+    Alert.alert('Confirmação', 'Você tem certeza que deseja sair da conta?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Sair',
+        style: 'destructive',
+        onPress: async () => {
+          await AsyncStorage.setItem('isLoggedIn', 'false');
+          router.replace('/login');
         },
-      ]
-    );
+      },
+    ]);
   };
 
-  // Exclusão de conta
   const handleDeleteAccount = async () => {
     Alert.alert(
       'Confirmação',
@@ -59,10 +50,13 @@ export default function ProfileScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              const data = await deleteAccount();
               await AsyncStorage.clear();
+              Alert.alert('Sucesso', data.message);
               router.replace('/login');
             } catch (error) {
-              Alert.alert('Erro', 'Não foi possível excluir a conta.');
+              const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro ao excluir a conta.';
+              Alert.alert('Erro', errorMessage);
             }
           },
         },
@@ -74,21 +68,11 @@ export default function ProfileScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      {/* Perfil */}
       <ThemedView style={styles.stepContainer}>
-        <IconSymbol
-          name="person.crop.circle"
-          weight="thin"
-          size={180}
-          color="black"
-        />
-        <ThemedText style={styles.userName}>
-          {userName || 'Nome do Perfil'}
-        </ThemedText>
-        
+        <IconSymbol name="person.crop.circle" weight="thin" size={180} color="black" />
+        <ThemedText style={styles.userName}>{userName || 'Nome do Perfil'}</ThemedText>
       </ThemedView>
 
-      {/* Cards */}
       <ThemedView style={styles.cardsContainer}>
         <ThemedView style={[styles.cardSmall, { width: 140 }]}>
           <ThemedText style={styles.cardNumber}>0</ThemedText>
@@ -101,7 +85,6 @@ export default function ProfileScreen() {
         </ThemedView>
       </ThemedView>
 
-      {/* Lista de opções */}
       <ThemedView style={styles.bodyContainer}>
         {options.map((item, index) => (
           <TouchableOpacity
@@ -109,7 +92,6 @@ export default function ProfileScreen() {
             style={styles.option}
             onPress={() => {
               if (item === 'Editar Perfil') setEditVisible(true);
-              // Navegação para Ajuda e Sobre o App pode ser adicionada aqui
             }}
           >
             <ThemedText style={styles.optionText}>{item}</ThemedText>
@@ -117,16 +99,11 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         ))}
 
-        {/* Logout */}
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={handleLogout}
-        >
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <ThemedText style={styles.logoutText}>Sair da Conta</ThemedText>
         </TouchableOpacity>
       </ThemedView>
 
-      {/* Popup de edição de perfil */}
       <EditProfilePopup
         visible={editVisible}
         onClose={() => setEditVisible(false)}
@@ -156,12 +133,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: 'black',
     fontFamily: 'Poppins_400Regular',
-  },
-  userEmail: {
-    fontSize: 16,
-    color: '#666',
-    fontFamily: 'Poppins_400Regular',
-    marginTop: 4,
   },
   cardsContainer: {
     position: 'absolute',
