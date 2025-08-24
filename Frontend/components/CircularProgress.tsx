@@ -27,6 +27,8 @@ export const CircularProgress = ({
     }
   }, [fill]);
 
+  const fontSize = size * 0.25; // calcula a fonte proporcional ao tamanho do círculo
+
   return (
     <View style={styles.container}>
       <AnimatedCircularProgress
@@ -41,7 +43,7 @@ export const CircularProgress = ({
       >
         {(fillValue: number) => (
           <View>
-            <Text style={styles.percent}>{Math.round(fillValue)}%</Text>
+            <Text style={[styles.percent, { fontSize }]}>{Math.round(fillValue)}%</Text>
           </View>
         )}
       </AnimatedCircularProgress>
@@ -55,7 +57,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   percent: {
-    fontSize: 35,
     fontFamily: 'Limelight_400Regular',
   },
 });

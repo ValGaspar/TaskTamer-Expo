@@ -20,7 +20,7 @@ type Props = {
   onDelete?: () => void;
 };
 
-const calendarIcon = require('@/assets/images/calendarIcon.png');
+const calendarIcon = require('@/assets/images/calendar.png');
 const etiquetaIcon = require('@/assets/images/etiquetaIcon.png');
 
 const PRIORITY_OPTIONS = [

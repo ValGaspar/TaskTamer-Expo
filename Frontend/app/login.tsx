@@ -46,77 +46,75 @@ export default function LoginScreen() {
     setLoadingLogin(true);
     try {
       await login(email, password); // chama o service
-      router.push('/home'); // só navega depois de salvar os tokens
+      router.replace('/home'); // navega após salvar token
     } catch (error) {
       let errorMessage = 'Credenciais inválidas.';
-      if (error && typeof error === 'object' && 'message' in error) {
-        errorMessage = String((error as { message?: string }).message) || errorMessage;
-      }
+      if (error instanceof Error) errorMessage = error.message;
       Alert.alert('Erro', errorMessage);
     } finally {
       setLoadingLogin(false);
     }
   };
 
-  if (loadingAssets) {
-    return (
-      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
-        <ThemedText>Carregando...</ThemedText>
-      </ThemedView>
-    );
-  }
-
+if (loadingAssets) {
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ThemedView style={styles.stepContainer}>
-          <Image source={require('@/assets/images/title.png')} style={styles.TaskTamerLogo} />
-          <ThemedText style={styles.titleContainer}>Login</ThemedText>
-
-          <View style={styles.inputSpacing} />
-
-          <ThemedView style={styles.inputContainer}>
-            <Image source={require('@/assets/images/email.png')} style={styles.icon} />
-            <TextInput
-              style={styles.input}
-              placeholder="E-mail"
-              placeholderTextColor="#fff"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </ThemedView>
-
-          <ThemedView style={styles.inputContainer}>
-            <Image source={require('@/assets/images/padlock.png')} style={styles.icon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Senha"
-              placeholderTextColor="#fff"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
-          </ThemedView>
-
-          <View style={styles.buttonSpacing} />
-
-          <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loadingLogin}>
-            {loadingLogin ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.buttonText}>Entrar</ThemedText>}
-          </TouchableOpacity>
-
-          <ThemedView style={styles.line} />
-
-          <ThemedText style={styles.text}>
-            Não tem uma conta? Toque para
-            <Link style={styles.criar} href="/cadastro"> Criar</Link>
-          </ThemedText>
-        </ThemedView>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+    <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator size="large" />
+      <ThemedText>Carregando...</ThemedText>
+    </ThemedView>
   );
+}
+
+return (
+  <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <ThemedView style={styles.stepContainer}>
+        <Image source={require('@/assets/images/title.png')} style={styles.TaskTamerLogo} />
+        <ThemedText style={styles.titleContainer}>Login</ThemedText>
+
+        <View style={styles.inputSpacing} />
+
+        <ThemedView style={styles.inputContainer}>
+          <Image source={require('@/assets/images/email.png')} style={styles.icon} />
+          <TextInput
+            style={styles.input}
+            placeholder="E-mail"
+            placeholderTextColor="#fff"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </ThemedView>
+
+        <ThemedView style={styles.inputContainer}>
+          <Image source={require('@/assets/images/padlock.png')} style={styles.icon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Senha"
+            placeholderTextColor="#fff"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+        </ThemedView>
+
+        <View style={styles.buttonSpacing} />
+
+        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loadingLogin}>
+          {loadingLogin ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.buttonText}>Entrar</ThemedText>}
+        </TouchableOpacity>
+
+        <ThemedView style={styles.line} />
+
+        <ThemedText style={styles.text}>
+          Não tem uma conta? Toque para
+          <Link style={styles.criar} href="/cadastro"> Criar</Link>
+        </ThemedText>
+      </ThemedView>
+    </TouchableWithoutFeedback>
+  </KeyboardAvoidingView>
+);
 }
 
 const styles = StyleSheet.create({

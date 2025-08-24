@@ -40,7 +40,7 @@ export default function HomeScreen() {
       />
       <ThemedText style={styles.title}>Seja bem-vindo!</ThemedText>
       <ThemedText style={styles.text}>
-        Organize seu dia, mantenha o foco e assuma o controle das suas tarefas — um passo de cada vez, rumo às suas metas.
+          Organize seu dia, mantenha o foco e assuma o controle das suas tarefas, um passo por vez rumo às suas metas diárias.
       </ThemedText>
       <TouchableOpacity style={styles.button} onPress={() => router.navigate('/login')}>
         <ThemedText style={styles.buttonText}>Iniciar</ThemedText>

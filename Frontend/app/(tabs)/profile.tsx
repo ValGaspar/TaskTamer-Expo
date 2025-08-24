@@ -7,12 +7,15 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import EditProfilePopup from '@/components/EditProfilePopup';
+import InfoPopup from '@/components/InfoPopup';
 import { deleteAccount } from '@/services/userService';
 
 export default function ProfileScreen() {
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [editVisible, setEditVisible] = useState(false);
+  const [helpVisible, setHelpVisible] = useState(false);
+  const [aboutVisible, setAboutVisible] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -52,10 +55,11 @@ export default function ProfileScreen() {
             try {
               const data = await deleteAccount();
               await AsyncStorage.clear();
-              Alert.alert('Sucesso', data.message);
+              Alert.alert('Sucesso', data.message || 'Conta deletada com sucesso!');
               router.replace('/login');
             } catch (error) {
-              const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro ao excluir a conta.';
+              let errorMessage = 'Erro ao excluir conta.';
+              if (error instanceof Error) errorMessage = error.message;
               Alert.alert('Erro', errorMessage);
             }
           },
@@ -92,6 +96,8 @@ export default function ProfileScreen() {
             style={styles.option}
             onPress={() => {
               if (item === 'Editar Perfil') setEditVisible(true);
+              else if (item === 'Ajuda') setHelpVisible(true);
+              else if (item === 'Sobre o App') setAboutVisible(true);
             }}
           >
             <ThemedText style={styles.optionText}>{item}</ThemedText>
@@ -104,6 +110,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </ThemedView>
 
+      {/* Popups */}
       <EditProfilePopup
         visible={editVisible}
         onClose={() => setEditVisible(false)}
@@ -115,109 +122,36 @@ export default function ProfileScreen() {
         currentName={userName}
         currentEmail={userEmail}
       />
+
+      <InfoPopup
+        visible={helpVisible}
+        onClose={() => setHelpVisible(false)}
+        title="Ajuda"
+        message="Entre em contato com a autora: Valentina Gaspar M, Turma:  Informática 63 2."
+      />
+
+      <InfoPopup
+        visible={aboutVisible}
+        onClose={() => setAboutVisible(false)}
+        title="Sobre o App"
+        message="Este aplicativo foi desenvolvido para auxiliar jovens com TDAH a organizar suas tarefas e manter o foco diário, com funcionalidades de lista de tarefas, lembretes e progresso."
+      />
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'white' },
-  stepContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    paddingTop: 80,
-    paddingHorizontal: 25,
-    height: '45%',
-  },
-  userName: {
-    marginTop: 20,
-    fontSize: 22,
-    color: 'black',
-    fontFamily: 'Poppins_400Regular',
-  },
-  cardsContainer: {
-    position: 'absolute',
-    top: '40%',
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-  },
-  cardSmall: {
-    height: 90,
-    backgroundColor: 'white',
-    borderRadius: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
-    zIndex: 10,
-  },
-  cardLarge: {
-    height: 90,
-    backgroundColor: 'white',
-    borderRadius: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
-    zIndex: 10,
-  },
-  cardNumber: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#000',
-    fontFamily: 'Poppins_400Regular',
-  },
-  cardLabel: {
-    fontSize: 16,
-    color: '#000',
-    marginTop: 5,
-    fontFamily: 'Poppins_400Regular',
-  },
-  bodyContainer: {
-    height: '55%',
-    backgroundColor: 'white',
-    paddingTop: 70,
-    alignItems: 'center',
-  },
-  option: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    width: 320,
-  },
-  optionText: {
-    fontSize: 16,
-    color: '#000',
-    fontFamily: 'Poppins_400Regular',
-  },
-  logoutButton: {
-    marginTop: '15%',
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 5,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 2,
-    width: 320,
-  },
-  logoutText: {
-    fontSize: 16,
-    color: '#D86565',
-    fontFamily: 'Poppins_400Regular',
-  },
+  stepContainer: { display: 'flex', alignItems: 'center', paddingTop: 80, paddingHorizontal: 25, height: '45%' },
+  userName: { marginTop: 20, fontSize: 22, color: 'black', fontFamily: 'Poppins_400Regular' },
+  cardsContainer: { position: 'absolute', top: '40%', left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20 },
+  cardSmall: { height: 90, backgroundColor: 'white', borderRadius: 5, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5, elevation: 8, zIndex: 10 },
+  cardLarge: { height: 90, backgroundColor: 'white', borderRadius: 5, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5, elevation: 8, zIndex: 10 },
+  cardNumber: { fontSize: 20, fontWeight: 'bold', color: '#000', fontFamily: 'Poppins_400Regular' },
+  cardLabel: { fontSize: 16, color: '#000', marginTop: 5, fontFamily: 'Poppins_400Regular' },
+  bodyContainer: { height: '55%', backgroundColor: 'white', paddingTop: 70, alignItems: 'center' },
+  option: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#eee', width: 320 },
+  optionText: { fontSize: 16, color: '#000', fontFamily: 'Poppins_400Regular' },
+  logoutButton: { marginTop: '15%', paddingVertical: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderRadius: 5, shadowColor: '#000', shadowOpacity: 0.1, shadowOffset: { width: 0, height: 2 }, shadowRadius: 4, elevation: 2, width: 320 },
+  logoutText: { fontSize: 16, color: '#D86565', fontFamily: 'Poppins_400Regular' },
 });

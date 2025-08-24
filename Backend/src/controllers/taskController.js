@@ -9,6 +9,17 @@ const getAllTasks = async (req, res) => {
   }
 };
 
+// NOVO: busca tarefas de um usuário específico
+const getTasksByUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const tasks = await Task.find({ userId });
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ message: "Erro ao buscar tarefas do usuário", error });
+  }
+};
+
 const createTask = async (req, res) => {
   try {
     const newTask = new Task(req.body);
@@ -47,6 +58,7 @@ const deleteTask = async (req, res) => {
 
 module.exports = {
   getAllTasks,
+  getTasksByUser,
   createTask,
   updateTask,
   deleteTask,
