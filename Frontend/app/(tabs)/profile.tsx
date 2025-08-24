@@ -5,18 +5,23 @@ import { useRouter } from 'expo-router';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import EditProfilePopup from '@/components/EditProfilePopup';
 
 export default function ProfileScreen() {
   const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [editVisible, setEditVisible] = useState(false);
   const router = useRouter();
 
-  // Carrega nome do usuário
+  // Carrega nome e email do usuário
   useEffect(() => {
-    const loadName = async () => {
+    const loadUserData = async () => {
       const savedName = await AsyncStorage.getItem('userName');
+      const savedEmail = await AsyncStorage.getItem('userEmail');
       if (savedName) setUserName(savedName);
+      if (savedEmail) setUserEmail(savedEmail);
     };
-    loadName();
+    loadUserData();
   }, []);
 
   // Logout com confirmação
@@ -38,9 +43,34 @@ export default function ProfileScreen() {
             }
           },
         },
-      ],
+      ]
     );
   };
+
+  // Exclusão de conta
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      'Confirmação',
+      'Tem certeza que deseja excluir sua conta? Essa ação não pode ser desfeita.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await AsyncStorage.clear();
+              router.replace('/login');
+            } catch (error) {
+              Alert.alert('Erro', 'Não foi possível excluir a conta.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const options = ['Editar Perfil', 'Ajuda', 'Sobre o App'];
 
   return (
     <ThemedView style={styles.container}>
@@ -54,6 +84,9 @@ export default function ProfileScreen() {
         />
         <ThemedText style={styles.userName}>
           {userName || 'Nome do Perfil'}
+        </ThemedText>
+        <ThemedText style={styles.userEmail}>
+          {userEmail || 'email@exemplo.com'}
         </ThemedText>
       </ThemedView>
 
@@ -72,8 +105,15 @@ export default function ProfileScreen() {
 
       {/* Lista de opções */}
       <ThemedView style={styles.bodyContainer}>
-        {['Editar Perfil', 'Ajuda', 'Sobre o App'].map((item, index) => (
-          <TouchableOpacity key={index} style={styles.option}>
+        {options.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.option}
+            onPress={() => {
+              if (item === 'Editar Perfil') setEditVisible(true);
+              // Navegação para Ajuda e Sobre o App pode ser adicionada aqui
+            }}
+          >
             <ThemedText style={styles.optionText}>{item}</ThemedText>
             <IconSymbol name="chevron.right" size={18} color="#000" />
           </TouchableOpacity>
@@ -87,12 +127,25 @@ export default function ProfileScreen() {
           <ThemedText style={styles.logoutText}>Sair da Conta</ThemedText>
         </TouchableOpacity>
       </ThemedView>
+
+      {/* Popup de edição de perfil */}
+      <EditProfilePopup
+        visible={editVisible}
+        onClose={() => setEditVisible(false)}
+        onSave={async (newName: string) => {
+          setUserName(newName);
+          if (newName) await AsyncStorage.setItem('userName', newName);
+        }}
+        onDeleteAccount={handleDeleteAccount}
+        currentName={userName}
+        currentEmail={userEmail}
+      />
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: 'white' },
   stepContainer: {
     display: 'flex',
     alignItems: 'center',
@@ -105,6 +158,12 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: 'black',
     fontFamily: 'Poppins_400Regular',
+  },
+  userEmail: {
+    fontSize: 16,
+    color: '#666',
+    fontFamily: 'Poppins_400Regular',
+    marginTop: 4,
   },
   cardsContainer: {
     position: 'absolute',
@@ -147,8 +206,18 @@ const styles = StyleSheet.create({
     color: '#000',
     fontFamily: 'Poppins_400Regular',
   },
-  cardLabel: { fontSize: 16, color: '#000', marginTop: 5, fontFamily: 'Poppins_400Regular' },
-  bodyContainer: { height: '55%', backgroundColor: 'white', paddingTop: 70, alignItems: 'center' },
+  cardLabel: {
+    fontSize: 16,
+    color: '#000',
+    marginTop: 5,
+    fontFamily: 'Poppins_400Regular',
+  },
+  bodyContainer: {
+    height: '55%',
+    backgroundColor: 'white',
+    paddingTop: 70,
+    alignItems: 'center',
+  },
   option: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -158,7 +227,11 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
     width: 320,
   },
-  optionText: { fontSize: 16, color: '#000', fontFamily: 'Poppins_400Regular' },
+  optionText: {
+    fontSize: 16,
+    color: '#000',
+    fontFamily: 'Poppins_400Regular',
+  },
   logoutButton: {
     marginTop: '15%',
     paddingVertical: 12,
@@ -173,5 +246,9 @@ const styles = StyleSheet.create({
     elevation: 2,
     width: 320,
   },
-  logoutText: { fontSize: 16, color: '#D86565', fontFamily: 'Poppins_400Regular' },
+  logoutText: {
+    fontSize: 16,
+    color: '#D86565',
+    fontFamily: 'Poppins_400Regular',
+  },
 });

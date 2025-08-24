@@ -29,7 +29,6 @@ export default function CadastroScreen() {
     }
     loadAssets();
 
-    // Limpa campos quando entra na tela
     setName('');
     setEmail('');
     setPassword('');
@@ -38,12 +37,13 @@ export default function CadastroScreen() {
   }, []);
 
   const validarSenha = (senha: string) => {
-    // Pelo menos 6 caracteres, pelo menos 1 letra e 1 número
     const regex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
     return regex.test(senha);
   };
 
   const handleCreateUser = async () => {
+    setErroSenha('');
+
     if (!name || !email || !password || !confirmPassword) {
       Alert.alert('Erro', 'Preencha todos os campos.');
       return;
@@ -57,8 +57,6 @@ export default function CadastroScreen() {
     if (!validarSenha(password)) {
       setErroSenha('A senha deve ter no mínimo 6 caracteres, incluindo pelo menos uma letra e um número.');
       return;
-    } else {
-      setErroSenha('');
     }
 
     setLoadingCreate(true);
@@ -72,11 +70,10 @@ export default function CadastroScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        // Salva no AsyncStorage
         await AsyncStorage.setItem('userName', data.name);
         await AsyncStorage.setItem('userId', data.id);
+        await AsyncStorage.setItem('userEmail', data.email);
 
-        // Limpa campos após sucesso
         setName('');
         setEmail('');
         setPassword('');
@@ -120,6 +117,9 @@ export default function CadastroScreen() {
               placeholderTextColor="#fff"
               value={name}
               onChangeText={setName}
+              autoCapitalize="words"
+              textContentType="name"
+              autoComplete="off"
             />
           </ThemedView>
 
@@ -133,6 +133,8 @@ export default function CadastroScreen() {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
+              textContentType="emailAddress"
+              autoComplete="off"
             />
           </ThemedView>
 
@@ -145,6 +147,9 @@ export default function CadastroScreen() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              textContentType="none"
+              autoComplete="off"
+              autoCorrect={false}
             />
           </ThemedView>
 
@@ -157,11 +162,16 @@ export default function CadastroScreen() {
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry
+              textContentType="none"
+              autoComplete="off"
+              autoCorrect={false}
             />
           </ThemedView>
 
-          {/* Mensagem de erro */}
-          {erroSenha ? <ThemedText style={{ color: 'red', marginBottom: 10 }}>{erroSenha}</ThemedText> : null}
+          {/* Espaço para mensagem de erro */}
+          <View style={styles.errorContainer}>
+            {erroSenha ? <ThemedText style={styles.errorText}>{erroSenha}</ThemedText> : null}
+          </View>
 
           <View style={styles.buttonSpacing} />
 
@@ -170,11 +180,16 @@ export default function CadastroScreen() {
           </TouchableOpacity>
 
           <ThemedView style={styles.line} />
-
           <ThemedText style={styles.text}>
-            Já tem uma conta? Toque para
-            <Link style={styles.criar} href="/login"> Entrar</Link>
+            Já tem uma conta? Toque para{' '}
+            <ThemedText
+              style={styles.criar}
+              onPress={() => router.replace('/login')}
+            >
+              Entrar
+            </ThemedText>
           </ThemedText>
+
         </ThemedView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
@@ -225,7 +240,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     fontSize: 16,
     backgroundColor: '#98B88F',
-    fontFamily: 'Poppins_400Regular'
+    fontFamily: 'Poppins_400Regular',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -235,7 +250,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     width: '75%',
-    marginBottom: 20
+    marginBottom: 20,
   },
   icon: {
     width: 20,
@@ -247,7 +262,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 1,
     marginVertical: 30,
-    marginTop: 170,
+    marginTop: 100
   },
   text: {
     color: 'black',
@@ -264,5 +279,16 @@ const styles = StyleSheet.create({
   },
   buttonSpacing: {
     flex: 0.2,
+  },
+  errorContainer: {
+    width: '75%',
+    minHeight: 20, // mantém espaço mesmo sem mensagem
+    marginBottom: 0
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
+    textAlign: "center"
   },
 });

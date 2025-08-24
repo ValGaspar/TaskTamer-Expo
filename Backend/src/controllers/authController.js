@@ -28,6 +28,7 @@ const loginUser = async (req, res) => {
       token,
       userId: user._id,
       name: user.name,
+      email: user.email,
     });
   } catch (error) {
     res.status(500).json({ message: 'Erro no login', error });
