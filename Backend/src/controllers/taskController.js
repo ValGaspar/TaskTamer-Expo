@@ -2,12 +2,19 @@ const Task = require("../models/taskModel");
 
 const getAllTasks = async (req, res) => {
   try {
-    const tasks = await Task.find();
+    const { userId } = req.query; // pega o userId da query
+    let tasks;
+    if (userId) {
+      tasks = await Task.find({ userId });
+    } else {
+      tasks = await Task.find();
+    }
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ message: "Erro ao buscar tarefas", error });
   }
 };
+
 
 // NOVO: busca tarefas de um usuário específico
 const getTasksByUser = async (req, res) => {

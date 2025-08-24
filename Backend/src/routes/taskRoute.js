@@ -2,7 +2,7 @@
 const express = require("express");
 const {
   getAllTasks,
-  getTasksByUser, // nova função
+  getTasksByUser, 
   createTask,
   updateTask,
   deleteTask,
@@ -14,7 +14,7 @@ const router = express.Router();
 router.get("/", getAllTasks);
 
 // Tarefas de um usuário específico
-router.get("/:userId", getTasksByUser); // << aqui
+router.get("/user/:userId", getTasksByUser); // << aqui
 
 router.post("/", createTask);
 router.put("/:id", updateTask);
