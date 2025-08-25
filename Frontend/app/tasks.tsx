@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { CircularProgress } from "@/components/CircularProgress";
-import { useRouter } from "expo-router";
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { CircularProgress } from '@/components/CircularProgress';
 
 type Task = {
   id: string;
   title: string;
   description?: string;
-  date: string; // ISO string
-  priority: "Alta" | "Média" | "Baixa";
+  date?: string;
+  priority: 'Alta' | 'Média' | 'Baixa';
   done: boolean;
   userId: string;
 };
@@ -18,58 +18,43 @@ type Task = {
 const STORAGE_KEY = (userId: string) => `@tasks_${userId}`;
 
 export default function TasksScreen() {
-  const router = useRouter();
+  const navigation = useNavigation();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [userId, setUserId] = useState<string>("");
+  const [userId, setUserId] = useState<string>('');
 
-  // Pega usuário logado
   useEffect(() => {
     const loadUser = async () => {
-      const storedUserId = await AsyncStorage.getItem("userId");
+      const storedUserId = await AsyncStorage.getItem('userId');
       if (storedUserId) setUserId(storedUserId);
     };
     loadUser();
   }, []);
 
-  // Carrega tarefas
-  useEffect(() => {
-    if (!userId) return;
-    const loadTasks = async () => {
-      try {
+  useFocusEffect(
+    useCallback(() => {
+      const loadTasks = async () => {
+        if (!userId) return;
         const jsonValue = await AsyncStorage.getItem(STORAGE_KEY(userId));
-        const parsedTasks: Task[] = jsonValue ? JSON.parse(jsonValue) : [];
-        setTasks(parsedTasks);
-      } catch (error) {
-        console.error("Erro ao carregar tarefas:", error);
-        setTasks([]);
-      }
-    };
-    loadTasks();
-  }, [userId]);
+        setTasks(jsonValue ? JSON.parse(jsonValue) : []);
+      };
+      loadTasks();
+    }, [userId])
+  );
 
-  // Salva tarefas
   useEffect(() => {
     if (!userId) return;
     AsyncStorage.setItem(STORAGE_KEY(userId), JSON.stringify(tasks));
   }, [tasks, userId]);
 
-  // Estatísticas
-  const completed = tasks.filter(t => t.done).length;
-  const remaining = tasks.length - completed;
-  const progress = tasks.length > 0 ? (completed / tasks.length) * 100 : 0;
+  const toggleDone = (taskId: string) => setTasks(prev => prev.map(t => t.id === taskId ? { ...t, done: !t.done } : t));
 
-  // Funções
-  const getPriorityColor = (priority: Task["priority"]) => {
+  const getPriorityColor = (priority: Task['priority']) => {
     switch (priority) {
-      case "Alta": return "#D86565";
-      case "Média": return "#DAE031";
-      case "Baixa": return "#91D865";
-      default: return "#ccc";
+      case 'Alta': return '#D86565';
+      case 'Média': return '#DAE031';
+      case 'Baixa': return '#91D865';
+      default: return '#ccc';
     }
-  };
-
-  const toggleDone = (taskId: string) => {
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, done: !t.done } : t));
   };
 
   const formatDate = (iso: string) => {
@@ -77,34 +62,19 @@ export default function TasksScreen() {
     return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
   };
 
-  const renderTask = ({ item }: { item: Task }) => {
-    const color = getPriorityColor(item.priority);
-    return (
-      <TouchableOpacity
-        style={[styles.taskCard, { borderLeftColor: color }]}
-        onPress={() => toggleDone(item.id)}
-      >
-        <View style={styles.taskHeader}>
-          <Text style={[styles.priority, { color }]}>Prioridade {item.priority}</Text>
-          <Text style={styles.deadline}>Prazo: {formatDate(item.date)}</Text>
-        </View>
-        <Text style={styles.taskTitle}>{item.title}</Text>
-        <Text style={styles.status}>{item.done ? "Concluída" : "Pendente"}</Text>
-      </TouchableOpacity>
-    );
-  };
+  const completed = tasks.filter(t => t.done).length;
+  const remaining = tasks.length - completed;
+  const progress = tasks.length ? (completed / tasks.length) * 100 : 0;
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={28} color="#516953" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Tarefas</Text>
       </View>
 
-      {/* Progresso */}
       <View style={styles.progressCard}>
         <View style={styles.statBox}>
           <Text style={styles.statNumber}>{remaining}</Text>
@@ -117,14 +87,19 @@ export default function TasksScreen() {
         </View>
       </View>
 
-      {/* Lista de tarefas */}
       <FlatList
-        data={tasks.sort((a, b) => {
-          const order: Record<string, number> = { Alta: 1, "Média": 2, Baixa: 3 };
-          return (order[a.priority] || 4) - (order[b.priority] || 4);
-        })}
+        data={tasks.sort((a, b) => ({ Alta: 1, 'Média': 2, Baixa: 3 }[a.priority] - { Alta: 1, 'Média': 2, Baixa: 3 }[b.priority]))}
         keyExtractor={item => item.id}
-        renderItem={renderTask}
+        renderItem={({ item }) => (
+          <TouchableOpacity style={[styles.taskCard, { borderLeftColor: getPriorityColor(item.priority) }]} onPress={() => toggleDone(item.id)}>
+            <View style={styles.taskHeader}>
+              <Text style={[styles.priority, { color: getPriorityColor(item.priority) }]}>Prioridade {item.priority}</Text>
+              <Text style={styles.deadline}>Prazo: {formatDate(item.date || new Date().toISOString())}</Text>
+            </View>
+            <Text style={styles.taskTitle}>{item.title}</Text>
+            <Text style={styles.status}>{item.done ? 'Concluída' : 'Pendente'}</Text>
+          </TouchableOpacity>
+        )}
         contentContainerStyle={{ paddingBottom: 20 }}
         ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>Nenhuma tarefa cadastrada</Text>}
       />

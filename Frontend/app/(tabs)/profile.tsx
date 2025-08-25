@@ -1,8 +1,10 @@
 // screens/ProfileScreen.tsx
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, TouchableOpacity, Alert, View, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
+
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -13,6 +15,7 @@ import { deleteAccount } from '@/services/userService';
 export default function ProfileScreen() {
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [editVisible, setEditVisible] = useState(false);
   const [helpVisible, setHelpVisible] = useState(false);
   const [aboutVisible, setAboutVisible] = useState(false);
@@ -22,11 +25,33 @@ export default function ProfileScreen() {
     const loadUserData = async () => {
       const savedName = await AsyncStorage.getItem('userName');
       const savedEmail = await AsyncStorage.getItem('userEmail');
+      const savedImage = await AsyncStorage.getItem('profileImage');
+
       if (savedName) setUserName(savedName);
       if (savedEmail) setUserEmail(savedEmail);
+      if (savedImage) setProfileImage(savedImage);
     };
     loadUserData();
   }, []);
+
+  const pickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permissão necessária', 'Precisamos acessar suas fotos.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      setProfileImage(uri);
+      await AsyncStorage.setItem('profileImage', uri);
+    }
+  };
 
   const handleLogout = async () => {
     Alert.alert('Confirmação', 'Você tem certeza que deseja sair da conta?', [
@@ -73,7 +98,17 @@ export default function ProfileScreen() {
   return (
     <ThemedView style={styles.container}>
       <ThemedView style={styles.stepContainer}>
-        <IconSymbol name="person.crop.circle" weight="thin" size={180} color="black" />
+        <View style={styles.profileContainer}>
+          {profileImage ? (
+            <Image source={{ uri: profileImage }} style={styles.profileImage} />
+          ) : (
+            <IconSymbol name="person.crop.circle" size={180} color="black" />
+          )}
+          <TouchableOpacity style={styles.addButton} onPress={pickImage}>
+            <IconSymbol name="plus" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
+
         <ThemedText style={styles.userName}>{userName || 'Nome do Perfil'}</ThemedText>
       </ThemedView>
 
@@ -127,7 +162,7 @@ export default function ProfileScreen() {
         visible={helpVisible}
         onClose={() => setHelpVisible(false)}
         title="Ajuda"
-        message="Entre em contato com a autora: Valentina Gaspar M, Turma:  Informática 63 2."
+        message="Entre em contato com a autora: Valentina Gaspar M, Turma: Informática 63 2."
       />
 
       <InfoPopup
@@ -143,15 +178,89 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'white' },
   stepContainer: { display: 'flex', alignItems: 'center', paddingTop: 80, paddingHorizontal: 25, height: '45%' },
+  profileContainer: { position: 'relative', alignItems: 'center' },
+  profileImage: {
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    borderWidth: 4,
+    borderColor: '#516953', 
+  },
+  addButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 10,
+    backgroundColor: 'black',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
   userName: { marginTop: 20, fontSize: 22, color: 'black', fontFamily: 'Poppins_400Regular' },
-  cardsContainer: { position: 'absolute', top: '40%', left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20 },
-  cardSmall: { height: 90, backgroundColor: 'white', borderRadius: 5, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5, elevation: 8, zIndex: 10 },
-  cardLarge: { height: 90, backgroundColor: 'white', borderRadius: 5, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5, elevation: 8, zIndex: 10 },
+  cardsContainer: {
+    position: 'absolute',
+    top: '40%',
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+  },
+  cardSmall: {
+    height: 90,
+    backgroundColor: 'white',
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    zIndex: 10,
+  },
+  cardLarge: {
+    height: 90,
+    backgroundColor: 'white',
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    zIndex: 10,
+  },
   cardNumber: { fontSize: 20, fontWeight: 'bold', color: '#000', fontFamily: 'Poppins_400Regular' },
   cardLabel: { fontSize: 16, color: '#000', marginTop: 5, fontFamily: 'Poppins_400Regular' },
   bodyContainer: { height: '55%', backgroundColor: 'white', paddingTop: 70, alignItems: 'center' },
-  option: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#eee', width: 320 },
+  option: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    width: 320,
+  },
   optionText: { fontSize: 16, color: '#000', fontFamily: 'Poppins_400Regular' },
-  logoutButton: { marginTop: '15%', paddingVertical: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderRadius: 5, shadowColor: '#000', shadowOpacity: 0.1, shadowOffset: { width: 0, height: 2 }, shadowRadius: 4, elevation: 2, width: 320 },
+  logoutButton: {
+    marginTop: '15%',
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 5,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
+    width: 320,
+  },
   logoutText: { fontSize: 16, color: '#D86565', fontFamily: 'Poppins_400Regular' },
 });
