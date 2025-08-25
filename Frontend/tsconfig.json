@@ -26,7 +26,7 @@
   ],
   "include": [
     "**/*.ts",
-    "**/*.tsx",
+    "**/*.tsx", "services/authService.js",
   ],
   "extends": "expo/tsconfig.base"
 }

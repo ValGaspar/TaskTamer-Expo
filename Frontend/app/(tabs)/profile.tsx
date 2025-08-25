@@ -1,4 +1,3 @@
-// screens/ProfileScreen.tsx
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity, Alert, View, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,7 +9,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import EditProfilePopup from '@/components/EditProfilePopup';
 import InfoPopup from '@/components/InfoPopup';
-import { deleteAccount } from '@/services/userService';
+import { deleteAccount, updateProfileImage } from '@/services/userService';
 
 export default function ProfileScreen() {
   const [userName, setUserName] = useState('');
@@ -21,6 +20,7 @@ export default function ProfileScreen() {
   const [aboutVisible, setAboutVisible] = useState(false);
   const router = useRouter();
 
+  // Carrega dados do usuário do AsyncStorage
   useEffect(() => {
     const loadUserData = async () => {
       const savedName = await AsyncStorage.getItem('userName');
@@ -34,28 +34,12 @@ export default function ProfileScreen() {
     loadUserData();
   }, []);
 
+  // Escolher/alterar imagem de perfil
   const pickImage = async () => {
     Alert.alert(
       'Alterar Foto',
       'Escolha uma opção',
       [
-        {
-          text: 'Câmera',
-          onPress: async () => {
-            const { status } = await ImagePicker.requestCameraPermissionsAsync();
-            if (status !== 'granted') {
-              Alert.alert('Permissão necessária', 'Precisamos acessar a câmera.');
-              return;
-            }
-
-            const result = await ImagePicker.launchCameraAsync({ quality: 1 });
-            if (!result.canceled) {
-              const uri = result.assets[0].uri;
-              setProfileImage(uri);
-              await AsyncStorage.setItem('profileImage', uri);
-            }
-          },
-        },
         {
           text: 'Galeria',
           onPress: async () => {
@@ -72,8 +56,14 @@ export default function ProfileScreen() {
 
             if (!result.canceled) {
               const uri = result.assets[0].uri;
-              setProfileImage(uri);
-              await AsyncStorage.setItem('profileImage', uri);
+              try {
+                const uploadedUrl = await updateProfileImage(uri);
+                setProfileImage(uploadedUrl.profileImage || uri);
+                await AsyncStorage.setItem('profileImage', uploadedUrl.profileImage || uri);
+              } catch (error) {
+                console.log(error);
+                Alert.alert('Erro', 'Não foi possível atualizar a imagem no servidor');
+              }
             }
           },
         },
@@ -83,19 +73,22 @@ export default function ProfileScreen() {
           onPress: async () => {
             setProfileImage(null);
             await AsyncStorage.removeItem('profileImage');
+            try {
+              await updateProfileImage(''); // remove do servidor
+            } catch (error) {
+              console.log(error);
+              Alert.alert('Erro', 'Não foi possível remover a imagem do servidor');
+            }
           },
         },
-        {
-          text: 'Cancelar',
-          style: 'cancel', // discreto e harmonioso
-        },
-      ],
-      { cancelable: true } // fecha ao tocar fora
+        { text: 'Cancelar', style: 'cancel' },
+      ]
     );
   };
 
+  // Logout
   const handleLogout = async () => {
-    Alert.alert('Confirmação', 'Você tem certeza que deseja sair da conta?', [
+    Alert.alert('Confirmação', 'Deseja sair da conta?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Sair',
@@ -108,30 +101,27 @@ export default function ProfileScreen() {
     ]);
   };
 
+  // Deletar conta
   const handleDeleteAccount = async () => {
-    Alert.alert(
-      'Confirmação',
-      'Tem certeza que deseja excluir sua conta? Essa ação não pode ser desfeita.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const data = await deleteAccount();
-              await AsyncStorage.clear();
-              Alert.alert('Sucesso', data.message || 'Conta deletada com sucesso!');
-              router.replace('/login');
-            } catch (error) {
-              let errorMessage = 'Erro ao excluir conta.';
-              if (error instanceof Error) errorMessage = error.message;
-              Alert.alert('Erro', errorMessage);
-            }
-          },
+    Alert.alert('Confirmação', 'Deseja excluir sua conta? Essa ação não pode ser desfeita.', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const data = await deleteAccount();
+            await AsyncStorage.clear();
+            Alert.alert('Sucesso', data.message || 'Conta deletada com sucesso!');
+            router.replace('/login');
+          } catch (error) {
+            let errorMessage = 'Erro ao excluir conta.';
+            if (error instanceof Error) errorMessage = error.message;
+            Alert.alert('Erro', errorMessage);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const options = ['Editar Perfil', 'Ajuda', 'Sobre o App'];
@@ -151,18 +141,6 @@ export default function ProfileScreen() {
         </View>
 
         <ThemedText style={styles.userName}>{userName || 'Nome do Perfil'}</ThemedText>
-      </ThemedView>
-
-      <ThemedView style={styles.cardsContainer}>
-        <ThemedView style={[styles.cardSmall, { width: 140 }]}>
-          <ThemedText style={styles.cardNumber}>0</ThemedText>
-          <ThemedText style={styles.cardLabel}>Sequência</ThemedText>
-        </ThemedView>
-
-        <ThemedView style={[styles.cardLarge, { width: 200 }]}>
-          <ThemedText style={styles.cardNumber}>0</ThemedText>
-          <ThemedText style={styles.cardLabel}>Dias Concluídos</ThemedText>
-        </ThemedView>
       </ThemedView>
 
       <ThemedView style={styles.bodyContainer}>
@@ -210,7 +188,7 @@ export default function ProfileScreen() {
         visible={aboutVisible}
         onClose={() => setAboutVisible(false)}
         title="Sobre o App"
-        message="Este aplicativo foi desenvolvido para auxiliar jovens com TDAH a organizar suas tarefas e manter o foco diário, com funcionalidades de lista de tarefas, lembretes e progresso."
+        message="Este aplicativo auxilia jovens com TDAH a organizar tarefas e manter foco diário."
       />
     </ThemedView>
   );
@@ -220,88 +198,12 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'white' },
   stepContainer: { display: 'flex', alignItems: 'center', paddingTop: 80, paddingHorizontal: 25, height: '45%' },
   profileContainer: { position: 'relative', alignItems: 'center' },
-  profileImage: {
-    width: 155,
-    height: 155,
-    borderRadius: 90,
-    borderWidth: 4,
-    borderColor: '#516953',
-  },
-  addButton: {
-    position: 'absolute',
-    bottom: 0,
-    right: 10,
-    backgroundColor: 'black',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
-  userName: { marginTop: 20, fontSize: 22, color: 'black', fontFamily: 'Poppins_400Regular' },
-  cardsContainer: {
-    position: 'absolute',
-    top: '40%',
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-  },
-  cardSmall: {
-    height: 90,
-    backgroundColor: 'white',
-    borderRadius: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
-    zIndex: 10,
-  },
-  cardLarge: {
-    height: 90,
-    backgroundColor: 'white',
-    borderRadius: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
-    zIndex: 10,
-  },
-  cardNumber: { fontSize: 20, fontWeight: 'bold', color: '#000', fontFamily: 'Poppins_400Regular' },
-  cardLabel: { fontSize: 16, color: '#000', marginTop: 5, fontFamily: 'Poppins_400Regular' },
-  bodyContainer: { height: '55%', backgroundColor: 'white', paddingTop: 70, alignItems: 'center' },
-  option: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    width: 320,
-  },
-  optionText: { fontSize: 16, color: '#000', fontFamily: 'Poppins_400Regular' },
-  logoutButton: {
-    marginTop: '15%',
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 5,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 2,
-    width: 320,
-  },
-  logoutText: { fontSize: 16, color: '#D86565', fontFamily: 'Poppins_400Regular' },
+  profileImage: { width: 155, height: 155, borderRadius: 90, borderWidth: 4, borderColor: '#516953' },
+  addButton: { position: 'absolute', bottom: 0, right: 10, backgroundColor: 'black', width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fff' },
+  userName: { marginTop: 20, fontSize: 22, color: 'black' },
+  bodyContainer: { paddingTop: 40, alignItems: 'center' },
+  option: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#eee', width: 320 },
+  optionText: { fontSize: 16, color: '#000' },
+  logoutButton: { marginTop: 20, paddingVertical: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderRadius: 5, width: 320 },
+  logoutText: { fontSize: 16, color: '#D86565' },
 });

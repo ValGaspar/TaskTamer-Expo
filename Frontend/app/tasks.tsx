@@ -46,14 +46,21 @@ export default function TasksScreen() {
     AsyncStorage.setItem(STORAGE_KEY(userId), JSON.stringify(tasks));
   }, [tasks, userId]);
 
-  const toggleDone = (taskId: string) => setTasks(prev => prev.map(t => t.id === taskId ? { ...t, done: !t.done } : t));
+  const toggleDone = (taskId: string) =>
+    setTasks(prev =>
+      prev.map(t => (t.id === taskId ? { ...t, done: !t.done } : t))
+    );
 
   const getPriorityColor = (priority: Task['priority']) => {
     switch (priority) {
-      case 'Alta': return '#D86565';
-      case 'Média': return '#DAE031';
-      case 'Baixa': return '#91D865';
-      default: return '#ccc';
+      case 'Alta':
+        return '#D86565';
+      case 'Média':
+        return '#DAE031';
+      case 'Baixa':
+        return '#91D865';
+      default:
+        return '#ccc';
     }
   };
 
@@ -88,20 +95,66 @@ export default function TasksScreen() {
       </View>
 
       <FlatList
-        data={tasks.sort((a, b) => ({ Alta: 1, 'Média': 2, Baixa: 3 }[a.priority] - { Alta: 1, 'Média': 2, Baixa: 3 }[b.priority]))}
+        data={tasks.sort(
+          (a, b) =>
+          ({ Alta: 1, Média: 2, Baixa: 3 }[a.priority] -
+            { Alta: 1, Média: 2, Baixa: 3 }[b.priority])
+        )}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity style={[styles.taskCard, { borderLeftColor: getPriorityColor(item.priority) }]} onPress={() => toggleDone(item.id)}>
+          <TouchableOpacity
+            style={[
+              styles.taskCard,
+              { borderLeftColor: getPriorityColor(item.priority) },
+            ]}
+            onPress={() => toggleDone(item.id)}
+          >
             <View style={styles.taskHeader}>
-              <Text style={[styles.priority, { color: getPriorityColor(item.priority) }]}>Prioridade {item.priority}</Text>
-              <Text style={styles.deadline}>Prazo: {formatDate(item.date || new Date().toISOString())}</Text>
+              <Text
+                style={[
+                  styles.priority,
+                  { color: getPriorityColor(item.priority) },
+                ]}
+              >
+                Prioridade {item.priority}
+              </Text>
+              <Text style={styles.deadline}>
+                Prazo: {formatDate(item.date || new Date().toISOString())}
+              </Text>
             </View>
-            <Text style={styles.taskTitle}>{item.title}</Text>
-            <Text style={styles.status}>{item.done ? 'Concluída' : 'Pendente'}</Text>
+
+            <Text
+              style={[
+                styles.taskTitle
+              ]}
+            >
+              {item.title}
+            </Text>
+
+            <View style={styles.statusRow}>
+              <Ionicons
+                name={item.done ? 'checkmark-circle' : 'ellipse-outline'}
+                size={18}
+                color={item.done ? '#4CAF50' : '#D86565'}
+                style={{ marginRight: 6 }}
+              />
+              <Text
+                style={[
+                  styles.status,
+                  { color: item.done ? '#4CAF50' : '#D86565' },
+                ]}
+              >
+                {item.done ? 'Concluída' : 'Pendente'}
+              </Text>
+            </View>
           </TouchableOpacity>
         )}
         contentContainerStyle={{ paddingBottom: 20 }}
-        ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>Nenhuma tarefa cadastrada</Text>}
+        ListEmptyComponent={
+          <Text style={{ textAlign: 'center', marginTop: 20 }}>
+            Nenhuma tarefa cadastrada
+          </Text>
+        }
       />
     </View>
   );
@@ -120,5 +173,6 @@ const styles = StyleSheet.create({
   priority: { fontFamily: 'Poppins_500Medium', fontSize: 12 },
   deadline: { fontSize: 12, color: '#000' },
   taskTitle: { fontSize: 16, fontFamily: 'Poppins_400Regular' },
-  status: { fontSize: 12, fontFamily: 'Poppins_400Regular', marginTop: 4, color: '#516953' },
+  statusRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
+  status: { fontSize: 12, fontFamily: 'Poppins_400Regular' },
 });
