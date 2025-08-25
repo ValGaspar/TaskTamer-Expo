@@ -1,4 +1,5 @@
 const express = require('express');
+const User = require('../models/userModel'); // rota de imagem
 const {
   getAllUsers,
   createUser,
