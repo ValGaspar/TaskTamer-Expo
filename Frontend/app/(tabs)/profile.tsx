@@ -35,22 +35,63 @@ export default function ProfileScreen() {
   }, []);
 
   const pickImage = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('Permissão necessária', 'Precisamos acessar suas fotos.');
-      return;
-    }
+    Alert.alert(
+      'Alterar Foto',
+      'Escolha uma opção',
+      [
+        {
+          text: 'Câmera',
+          onPress: async () => {
+            const { status } = await ImagePicker.requestCameraPermissionsAsync();
+            if (status !== 'granted') {
+              Alert.alert('Permissão necessária', 'Precisamos acessar a câmera.');
+              return;
+            }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-    });
+            const result = await ImagePicker.launchCameraAsync({ quality: 1 });
+            if (!result.canceled) {
+              const uri = result.assets[0].uri;
+              setProfileImage(uri);
+              await AsyncStorage.setItem('profileImage', uri);
+            }
+          },
+        },
+        {
+          text: 'Galeria',
+          onPress: async () => {
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+              Alert.alert('Permissão necessária', 'Precisamos acessar suas fotos.');
+              return;
+            }
 
-    if (!result.canceled) {
-      const uri = result.assets[0].uri;
-      setProfileImage(uri);
-      await AsyncStorage.setItem('profileImage', uri);
-    }
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              quality: 1,
+            });
+
+            if (!result.canceled) {
+              const uri = result.assets[0].uri;
+              setProfileImage(uri);
+              await AsyncStorage.setItem('profileImage', uri);
+            }
+          },
+        },
+        {
+          text: 'Remover Foto',
+          style: 'destructive',
+          onPress: async () => {
+            setProfileImage(null);
+            await AsyncStorage.removeItem('profileImage');
+          },
+        },
+        {
+          text: 'Cancelar',
+          style: 'cancel', // discreto e harmonioso
+        },
+      ],
+      { cancelable: true } // fecha ao tocar fora
+    );
   };
 
   const handleLogout = async () => {
@@ -102,7 +143,7 @@ export default function ProfileScreen() {
           {profileImage ? (
             <Image source={{ uri: profileImage }} style={styles.profileImage} />
           ) : (
-            <IconSymbol name="person.crop.circle" size={180} color="black" />
+            <IconSymbol name="person.crop.circle" size={170} color="black" />
           )}
           <TouchableOpacity style={styles.addButton} onPress={pickImage}>
             <IconSymbol name="plus" size={20} color="#fff" />
@@ -180,11 +221,11 @@ const styles = StyleSheet.create({
   stepContainer: { display: 'flex', alignItems: 'center', paddingTop: 80, paddingHorizontal: 25, height: '45%' },
   profileContainer: { position: 'relative', alignItems: 'center' },
   profileImage: {
-    width: 180,
-    height: 180,
+    width: 155,
+    height: 155,
     borderRadius: 90,
     borderWidth: 4,
-    borderColor: '#516953', 
+    borderColor: '#516953',
   },
   addButton: {
     position: 'absolute',

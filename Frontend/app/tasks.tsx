@@ -109,7 +109,7 @@ export default function TasksScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', paddingHorizontal: 16, paddingTop: 40 },
-  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 35 },
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 35, marginVertical: 30 },
   headerTitle: { fontSize: 22, color: '#516953', fontFamily: 'Poppins_500Medium', marginLeft: 10 },
   progressCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', backgroundColor: '#98B88F', padding: 16, borderRadius: 16, marginBottom: 20, elevation: 2 },
   statBox: { alignItems: 'center' },

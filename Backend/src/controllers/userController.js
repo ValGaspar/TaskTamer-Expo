@@ -47,9 +47,10 @@ const createUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
+    const { name, profileImage } = req.body; // pegar a imagem do front
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      { name, profileImage }, // atualizar a imagem junto do nome
       { new: true, select: '-password' }
     );
     if (!updatedUser) {
@@ -60,6 +61,7 @@ const updateUser = async (req, res) => {
     res.status(400).json({ message: 'Erro ao atualizar usuário', error });
   }
 };
+
 
 const deleteUser = async (req, res) => {
   try {
