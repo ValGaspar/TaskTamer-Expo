@@ -20,7 +20,7 @@ const getAllTasks = async (req, res) => {
 const getTasksByUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const tasks = await Task.find({ user: userId }); // <-- aqui também corrigi
+    const tasks = await Task.find({ user: userId }).sort({ createdAt: -1 });
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ message: "Erro ao buscar tarefas do usuário", error });
@@ -28,9 +28,17 @@ const getTasksByUser = async (req, res) => {
 };
 
 
+
 const createTask = async (req, res) => {
   try {
-    const newTask = new Task(req.body);
+    const { title, description, date, priority, user } = req.body;
+    const newTask = new Task({
+      title,
+      description,
+      date: date ? new Date(date) : undefined,
+      priority: priority || "Prioridade Média",
+      user,
+    });
     await newTask.save();
     res.status(201).json(newTask);
   } catch (error) {
@@ -38,14 +46,28 @@ const createTask = async (req, res) => {
   }
 };
 
+
+
 const updateTask = async (req, res) => {
   try {
-    const updatedTask = await Task.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+    const { title, description, done, date, priority } = req.body;
+
+    const updatedTask = await Task.findByIdAndUpdate(
+      req.params.id,
+      {
+        title,
+        description,
+        done,
+        date: date ? new Date(date) : undefined,
+        priority,
+      },
+      { new: true }
+    );
+
     if (!updatedTask) {
       return res.status(404).json({ message: "Tarefa não encontrada" });
     }
+
     res.json(updatedTask);
   } catch (error) {
     res.status(400).json({ message: "Erro ao atualizar tarefa", error });
