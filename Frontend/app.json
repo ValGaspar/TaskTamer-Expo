@@ -2,8 +2,8 @@
   "expo": {
     "newArchEnabled": true,
     "name": "TaskTamer",
-    "scheme": "TASKTAMER",
-    "slug": "TaskTamer",
+    "scheme": "tasktamer",
+    "slug": "tasktamer",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
@@ -31,7 +31,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-asset"
+      "expo-asset",
+      "expo-web-browser"
     ]
   }
 }
