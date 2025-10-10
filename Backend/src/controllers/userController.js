@@ -47,10 +47,10 @@ const createUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
-    const { name, profileImage } = req.body; // pegar a imagem do front
+    const { name, profileImage } = req.body;
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      { name, profileImage }, // atualizar a imagem junto do nome
+      { name, profileImage },
       { new: true, select: '-password' }
     );
     if (!updatedUser) {

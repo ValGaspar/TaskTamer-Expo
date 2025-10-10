@@ -27,7 +27,7 @@ export const CircularProgress = ({
     }
   }, [fill]);
 
-  const fontSize = size * 0.25; // calcula a fonte proporcional ao tamanho do círculo
+  const fontSize = size * 0.25;
 
   return (
     <View style={styles.container}>
@@ -35,7 +35,7 @@ export const CircularProgress = ({
         ref={circularRef}
         size={size}
         width={width}
-        fill={prevFill} // pra ir a partir do valor anterior
+        fill={prevFill}
         tintColor={tintColor}
         backgroundColor={backgroundColor}
         rotation={0}

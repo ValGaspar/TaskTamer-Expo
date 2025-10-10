@@ -6,7 +6,6 @@ const path = require('path');
 
 const router = express.Router();
 
-// Configuração do multer para upload
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
   filename: (req, file, cb) => {
@@ -16,12 +15,12 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Rota para atualizar imagem de perfil com arquivo
+
 router.put('/:id/profile-image', authMiddleware, upload.single('profileImage'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'Nenhum arquivo enviado' });
 
-    const imageUrl = `/uploads/${req.file.filename}`; // URL para acessar a imagem
+    const imageUrl = `/uploads/${req.file.filename}`;
 
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
