@@ -95,7 +95,7 @@ const ProfileScreen = () => {
             await AsyncStorage.setItem("profileImage", uri);
 
             try {
-              await updateProfileImage(base64Img);
+              await updateProfileImage(result.assets[0].uri);
             } catch (error) {
               console.log(error);
               Alert.alert("Erro", "Não foi possível atualizar a imagem no servidor");
