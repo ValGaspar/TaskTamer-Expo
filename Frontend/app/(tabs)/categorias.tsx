@@ -40,7 +40,9 @@ export default function CategoriesScreen() {
           style={styles.card}
           onPress={() => {
             if (item.name === 'Tarefas') {
-              navigation.getParent()?.navigate('tasks'); 
+              navigation.getParent()?.navigate('tasks');
+            } else if (item.name === 'Relatório de Atividade') {
+              navigation.getParent()?.navigate('relatorio');
             } else {
               console.log('Outra categoria:', item.name);
             }

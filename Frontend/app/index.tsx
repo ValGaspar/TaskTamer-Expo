@@ -26,7 +26,7 @@ export default function HomeScreen() {
     return (
       <ThemedView style={styles.loadingContainer}>
         <ActivityIndicator size="large" />
-        <ThemedText>Carregando recursos...</ThemedText>
+        {/* Apenas um ícone de carregamento */}
       </ThemedView>
     );
   }
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     padding: 25,
   },
   logo: {
-    width: '60%',
+    width: '50%',
     height: width * 0.6,
   },
   title: {

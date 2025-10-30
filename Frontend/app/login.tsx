@@ -17,6 +17,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Asset } from 'expo-asset';
 import { login } from '@/services/authService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -45,8 +46,9 @@ export default function LoginScreen() {
 
     setLoadingLogin(true);
     try {
-      await login(email, password); // chama o service
-      router.replace('/home'); // navega após salvar token
+      await login(email, password);
+      await AsyncStorage.setItem('userLoggedIn', 'true');
+      router.replace('/home'); 
     } catch (error) {
       let errorMessage = 'Credenciais inválidas.';
       if (error instanceof Error) errorMessage = error.message;

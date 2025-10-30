@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { StyleSheet, View, Text, FlatList, TouchableOpacity, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
@@ -10,7 +10,8 @@ import { CircularProgress } from '@/components/CircularProgress';
 import { TaskDetailPopUp } from '@/components/TaskDetailPopUp';
 import { TaskItem } from '@/components/TaskItem';
 import { TaskWarningPopUp } from '@/components/TaskWarningPopUp';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
+import { ProgressContext, Task as ProgressTask } from '@/components/ProgressContext';
 
 type Task = {
   id: string;
@@ -26,7 +27,8 @@ type Task = {
 const STORAGE_KEY = (userId: string) => `@tasks_${userId}`;
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
+  const { recalcProgress } = useContext(ProgressContext);
+
   const [fontsLoaded] = useFonts({
     Limelight_400Regular,
     LibreBaskerville_400Regular,
@@ -54,6 +56,9 @@ export default function HomeScreen() {
           ? JSON.parse(jsonValue).map((t: Task) => ({ ...t, date: t.date ? new Date(t.date) : undefined }))
           : [];
         setTasks(userTasks);
+
+        // Atualiza streak/dias produtivos
+        await recalcProgress(userTasks as ProgressTask[], savedUserId);
       };
       loadData();
     }, [])
@@ -77,11 +82,15 @@ export default function HomeScreen() {
 
   const closeDetailModal = () => setShowDetailModal(false);
 
-  const handleSubmitDetail = (data: { title: string; description: string; date: Date; priority: string }) => {
+  const handleSubmitDetail = async (data: { title: string; description: string; date: Date; priority: string }) => {
     const priorityValue = data.priority || 'Prioridade Alta';
 
+    if (!userId) return;
+
     if (editingTask) {
-      setTasks(prev => prev.map(t => (t.id === editingTask.id ? { ...t, ...data, priority: priorityValue } : t)));
+      const updated = tasks.map(t => (t.id === editingTask.id ? { ...t, ...data, priority: priorityValue } : t));
+      setTasks(updated);
+      await recalcProgress(updated as ProgressTask[], userId);
     } else {
       const newTask: Task = {
         id: Date.now().toString(),
@@ -90,18 +99,22 @@ export default function HomeScreen() {
         userId,
         ...data,
         priority: priorityValue,
+        date: data.date || new Date(),
       };
-      setTasks(prev => {
-        const updatedTasks = [...prev, newTask];
-        if (updatedTasks.length % 4 === 0) setShowWarningModal(true);
-        return updatedTasks;
-      });
+      const updatedTasks = [...tasks, newTask];
+      setTasks(updatedTasks);
+      await recalcProgress(updatedTasks as ProgressTask[], userId);
+
+      if (updatedTasks.length % 4 === 0) setShowWarningModal(true);
     }
     setShowDetailModal(false);
   };
 
-  const toggleDone = (id: string) => {
-    setTasks(prev => prev.map(task => (task.id === id ? { ...task, done: !task.done } : task)));
+  const toggleDone = async (id: string) => {
+    if (!userId) return;
+    const updated = tasks.map(task => (task.id === id ? { ...task, done: !task.done } : task));
+    setTasks(updated);
+    await recalcProgress(updated as ProgressTask[], userId);
   };
 
   const sortedTasks = [...tasks].sort((a, b) => {
@@ -132,9 +145,19 @@ export default function HomeScreen() {
             tasks.length === 0 ? (
               <Text style={{ color: '#fff', textAlign: 'center', marginTop: 50, fontSize: 16 }}>Lista vazia</Text>
             ) : (
-              <FlatList data={sortedTasks} keyExtractor={item => item.id} renderItem={({ item }) => (
-                <TaskItem done={item.done ?? false} title={item.title} onToggle={() => toggleDone(item.id)} onPress={() => openEditTaskModal(item)} />
-              )} showsVerticalScrollIndicator />
+              <FlatList
+                data={sortedTasks}
+                keyExtractor={item => item.id}
+                renderItem={({ item }) => (
+                  <TaskItem
+                    done={item.done ?? false}
+                    title={item.title}
+                    onToggle={() => toggleDone(item.id)}
+                    onPress={() => openEditTaskModal(item)}
+                  />
+                )}
+                showsVerticalScrollIndicator
+              />
             )
           )}
         </View>
@@ -150,8 +173,26 @@ export default function HomeScreen() {
           visible={showDetailModal}
           onClose={closeDetailModal}
           onSubmit={handleSubmitDetail}
-          initialData={editingTask ? { title: editingTask.title, description: editingTask.description || '', date: editingTask.date || new Date(), priority: editingTask.priority || 'Prioridade Alta' } : null}
-          onDelete={editingTask ? () => { setTasks(prev => prev.filter(t => t.id !== editingTask.id)); setShowDetailModal(false); } : undefined}
+          initialData={
+            editingTask
+              ? {
+                  title: editingTask.title,
+                  description: editingTask.description || '',
+                  date: editingTask.date || new Date(),
+                  priority: editingTask.priority || 'Prioridade Alta',
+                }
+              : null
+          }
+          onDelete={
+            editingTask
+              ? async () => {
+                  const filtered = tasks.filter(t => t.id !== editingTask.id);
+                  setTasks(filtered);
+                  await recalcProgress(filtered as ProgressTask[], userId);
+                  setShowDetailModal(false);
+                }
+              : undefined
+          }
         />
       </ThemedView>
     </ThemedView>
