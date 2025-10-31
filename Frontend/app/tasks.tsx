@@ -56,9 +56,9 @@ export default function TasksScreen() {
       case 'Alta':
         return '#D86565';
       case 'Média':
-        return '#DAE031';
+        return '#b4b928ff';
       case 'Baixa':
-        return '#91D865';
+        return '#74b04fff';
       default:
         return '#ccc';
     }
