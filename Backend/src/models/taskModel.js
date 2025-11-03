@@ -14,6 +14,8 @@ const taskSchema = new mongoose.Schema({
     enum: ["Alta", "Média", "Baixa"],
     default: "Baixa",
   },
+
+   notificationId: { type: String },
 });
 
 module.exports = mongoose.model("Task", taskSchema);

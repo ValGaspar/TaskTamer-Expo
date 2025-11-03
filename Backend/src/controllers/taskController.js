@@ -1,9 +1,8 @@
 const Task = require("../models/taskModel");
 
-// Busca todas as tarefas
 const getAllTasks = async (req, res) => {
   try {
-    const { user } = req.query; // <-- troquei userId para user
+    const { user } = req.query;
     let tasks;
     if (user) {
       tasks = await Task.find({ user });
@@ -16,7 +15,6 @@ const getAllTasks = async (req, res) => {
   }
 };
 
-// Busca tarefas de um usuário específico
 const getTasksByUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -27,18 +25,19 @@ const getTasksByUser = async (req, res) => {
   }
 };
 
-
-
 const createTask = async (req, res) => {
   try {
-    const { title, description, date, priority, user } = req.body;
+    const { title, description, date, priority, user, notificationId } = req.body;
+
     const newTask = new Task({
       title,
       description,
       date: date ? new Date(date) : undefined,
       priority: priority || "Prioridade Média",
       user,
+      notificationId,
     });
+
     await newTask.save();
     res.status(201).json(newTask);
   } catch (error) {
@@ -46,11 +45,9 @@ const createTask = async (req, res) => {
   }
 };
 
-
-
 const updateTask = async (req, res) => {
   try {
-    const { title, description, done, date, priority } = req.body;
+    const { title, description, done, date, priority, notificationId } = req.body;
 
     const updatedTask = await Task.findByIdAndUpdate(
       req.params.id,
@@ -60,6 +57,7 @@ const updateTask = async (req, res) => {
         done,
         date: date ? new Date(date) : undefined,
         priority,
+        notificationId,
       },
       { new: true }
     );

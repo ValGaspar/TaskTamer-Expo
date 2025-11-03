@@ -43,7 +43,6 @@ export default function HomeScreen() {
 
   const PRIORITY_ORDER = ['Prioridade Alta', 'Prioridade Média', 'Prioridade Baixa'];
 
-  // Carrega usuário e tarefas
   useFocusEffect(
     React.useCallback(() => {
       const loadData = async () => {
@@ -57,14 +56,12 @@ export default function HomeScreen() {
           : [];
         setTasks(userTasks);
 
-        // Atualiza streak/dias produtivos
         await recalcProgress(userTasks as ProgressTask[], savedUserId);
       };
       loadData();
     }, [])
   );
 
-  // Salva tarefas
   useEffect(() => {
     if (!userId) return;
     AsyncStorage.setItem(STORAGE_KEY(userId), JSON.stringify(tasks));

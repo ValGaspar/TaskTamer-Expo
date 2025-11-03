@@ -3,7 +3,7 @@ const User = require('../models/userModel');
 const authMiddleware = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
-const { createUser, updateUser, deleteUser, getAllUsers } = require('../controllers/userController');
+const { createUser, updateUser, deleteUser, getAllUsers, savePushToken  } = require('../controllers/userController');
 
 const router = express.Router();
 
@@ -17,6 +17,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.post('/', createUser);
+router.post("/save-token", savePushToken);
 
 router.put('/:id/profile-image', authMiddleware, upload.single('profileImage'), async (req, res) => {
   try {
