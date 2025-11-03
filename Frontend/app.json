@@ -33,6 +33,13 @@
       "expo-router",
       "expo-asset",
       "expo-web-browser"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "00040b1f-919c-4315-8ac8-cd3a2a33e235"
+      }
+    },
+    "owner": "valgaspar"
   }
 }

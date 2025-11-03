@@ -1,10 +1,9 @@
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
-import { Task } from "@/components/ProgressContext"; // seu tipo de Task
+import { Task } from "@/components/ProgressContext";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
     shouldShowBanner: true,
@@ -13,7 +12,6 @@ Notifications.setNotificationHandler({
 });
 
 export async function registerForPushNotificationsAsync() {
-  let token;
 
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
@@ -24,15 +22,24 @@ export async function registerForPushNotificationsAsync() {
   }
 
   if (finalStatus !== "granted") {
-    alert("Permissão para notificações não concedida!");
+    console.warn("Permissão para notificações não concedida!");
     return;
   }
 
-  token = (await Notifications.getExpoPushTokenAsync()).data;
-  console.log("Token do dispositivo:", token);
+  const token = (await Notifications.getExpoPushTokenAsync()).data;
+
+  try {
+    await fetch("https://tasktamer-expo.onrender.com/users/save-token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ expoPushToken: token }),
+    });
+  } catch (err) {
+    console.error("Erro ao enviar token para backend:", err);
+  }
 
   if (Platform.OS === "android") {
-    Notifications.setNotificationChannelAsync("default", {
+    await Notifications.setNotificationChannelAsync("default", {
       name: "default",
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
@@ -43,33 +50,13 @@ export async function registerForPushNotificationsAsync() {
   return token;
 }
 
-export async function sendLocalNotification(title: string, body: string) {
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title,
-      body,
-    },
-    trigger: {
-      seconds: 2,
-      repeats: false,
-    } as Notifications.TimeIntervalTriggerInput,
-  });
-}
-
-// -------------------------
-// NOVAS FUNÇÕES PARA TASKS
-// -------------------------
-
-// Agenda notificação para uma tarefa
 export async function scheduleTaskNotification(task: Task) {
   if (!task.date || task.done) return;
 
   const taskDate = new Date(task.date);
   const now = new Date();
-
   if (taskDate <= now) return;
 
-  // Cancelar notificação antiga se existir
   if (task.notificationId) {
     await cancelTaskNotification(task.notificationId);
   }
@@ -87,10 +74,9 @@ export async function scheduleTaskNotification(task: Task) {
     trigger,
   });
 
-  return notificationId; // salva este ID junto com a tarefa
+  return notificationId;
 }
 
-// Cancela uma notificação agendada
 export async function cancelTaskNotification(notificationId: string) {
   await Notifications.cancelScheduledNotificationAsync(notificationId);
 }
