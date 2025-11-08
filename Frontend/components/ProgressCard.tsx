@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   percentage: {
-    fontSize: Math.min(CARD_SIZE * 0.2, 30), 
+    fontSize: Math.min(CARD_SIZE * 0.2, 26), 
     fontFamily: 'Limelight_400Regular',
     color: '#516953',
   },

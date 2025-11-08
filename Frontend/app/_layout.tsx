@@ -5,23 +5,31 @@ import * as SplashScreen from 'expo-splash-screen';
 import { Asset } from 'expo-asset';
 import AnimatedSplash from '../components/AnimatedSplash';
 import { ProgressProvider } from '../components/ProgressContext';
+import { useLoadFonts } from '../hooks/useLoadFonts'; 
 
 export default function RootLayout() {
   const [appIsReady, setAppIsReady] = useState(false);
   const [splashDone, setSplashDone] = useState(false);
 
+  const fontsLoaded = useLoadFonts();
+
   useEffect(() => {
     async function prepare() {
       try {
         await SplashScreen.preventAutoHideAsync();
-        await Asset.loadAsync([require('@/assets/images/TasktamerLogo.png')]);
-        await new Promise(resolve => setTimeout(resolve, 500));
+
+        await Asset.loadAsync([
+          require('@/assets/images/TasktamerLogo.png'),
+        ]);
+
+        await new Promise(resolve => setTimeout(resolve, 400));
       } catch (e) {
         console.warn(e);
       } finally {
         setAppIsReady(true);
       }
     }
+
     prepare();
   }, []);
 
@@ -30,7 +38,8 @@ export default function RootLayout() {
     setSplashDone(true);
   }, []);
 
-  if (!appIsReady) return null;
+  if (!appIsReady || !fontsLoaded) return null;
+
   if (!splashDone) return <AnimatedSplash finish={onSplashAnimationEnd} />;
 
   return (

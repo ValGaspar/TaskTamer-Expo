@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { scheduleTaskNotification, cancelTaskNotification } from "@/utils/notifications";
+import { scheduleDayNotifications } from "@/utils/notifications";
 
 export type Task = {
 id: string;
@@ -94,11 +94,10 @@ setProgressData({ completed, remaining, percentage });
 
 for (const task of tasks) {
   if (task.userId === userId) {
-    if (task.notificationId) {
-      await cancelTaskNotification(task.notificationId);
-    }
-    const notificationId = await scheduleTaskNotification(task);
-    task.notificationId = notificationId;
+    // schedule notifications for this single task (function expects an array)
+    await scheduleDayNotifications([task]);
+    // scheduleDayNotifications does not return a notification id; if you need to store one,
+    // that logic must be implemented inside scheduleDayNotifications or a different API.
   }
 }
 

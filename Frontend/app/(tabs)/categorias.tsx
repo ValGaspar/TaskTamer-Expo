@@ -33,7 +33,7 @@ export default function CategoriesScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: 65 }]}>
       {categories.map((item) => (
         <TouchableOpacity
           key={item.id}

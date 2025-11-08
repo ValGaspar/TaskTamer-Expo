@@ -2,8 +2,7 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
 import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
+import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Poppins_400Regular } from '@expo-google-fonts/poppins';
 
 export default function TabLayout() {
@@ -11,72 +10,54 @@ export default function TabLayout() {
     Poppins_400Regular,
   });
 
-  if (!fontsLoaded) {
-    return null; 
-  }
+  if (!fontsLoaded) return null;
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: 'black',
-        tabBarInactiveTintColor: '#70816C',
         headerShown: false,
+        tabBarActiveTintColor: '#70816C',
+        tabBarInactiveTintColor: 'black',
         tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            position: 'absolute',
-          },
-          default: {},
-        }),
-        tabBarLabelStyle: {
-          fontFamily: 'Poppins_400Regular',
-          fontWeight: 'normal',
-          fontSize: 14,
-          marginTop: 3,    
+        tabBarBackground: () => null,
+        tabBarStyle: {
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
+          elevation: 0,
+          position: 'absolute',
         },
-        tabBarIconStyle: {
-          marginTop: 6,
+        tabBarLabelStyle: {
+          fontFamily: 'Poppins-Regular',
+          fontSize: 14,
+          marginTop: 2,
         },
       }}
     >
       <Tabs.Screen
         name="home"
         options={{
-          tabBarIcon: ({ color }) => (
-            <IconSymbol
-              size={30}
-              name="house.fill"
-              color={color || 'black'}
-            />
-          ),
           title: 'Início',
+          tabBarIcon: ({ color }) => (
+            <Ionicons name={Platform.OS === 'ios' ? 'home-sharp' : 'home-outline'} size={25} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="categorias"
         options={{
-          tabBarIcon: ({ color }) => (
-            <IconSymbol
-              size={30}
-              name="square.grid.2x2.fill"
-              color={color || 'black'}
-            />
-          ),
           title: 'Categorias',
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="grid-outline" size={25} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          tabBarIcon: ({ color }) => (
-            <IconSymbol
-              size={30}
-              name="person.fill"
-              color={color || 'black'}
-            />
-          ),
           title: 'Perfil',
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="person-circle-outline" size={25} color={color} />
+          ),
         }}
       />
     </Tabs>

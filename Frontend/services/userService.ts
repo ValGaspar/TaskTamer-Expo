@@ -56,3 +56,5 @@ export const updateProfileImage = async (imageUri: string) => {
   return data;
 };
 
+// TER QUE ARRUMAR 
+

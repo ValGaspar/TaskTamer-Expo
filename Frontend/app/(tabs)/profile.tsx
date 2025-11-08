@@ -38,7 +38,7 @@ const ProfileScreen = () => {
         text: "Sair",
         style: "destructive",
         onPress: async () => {
-          await AsyncStorage.removeItem("userLoggedIn");
+          await AsyncStorage.removeItem("isLoggedIn");
           router.replace("/login");
         },
       },
@@ -85,11 +85,11 @@ const ProfileScreen = () => {
       </ThemedView>
 
       <ThemedView style={styles.cardsContainer}>
-        <ThemedView style={[styles.cardSmall, { width: 140 }]}>
+        <ThemedView style={[styles.cardSmall, { width: 130 }]}>
           <ThemedText style={styles.cardNumber}>{streak}</ThemedText>
           <ThemedText style={styles.cardLabel}>Sequência</ThemedText>
         </ThemedView>
-        <ThemedView style={[styles.cardLarge, { width: 200 }]}>
+        <ThemedView style={[styles.cardLarge, { width: 190 }]}>
           <ThemedText style={styles.cardNumber}>{totalDays}</ThemedText>
           <ThemedText style={styles.cardLabel}>Dias Produtivos</ThemedText>
         </ThemedView>
@@ -132,7 +132,7 @@ const ProfileScreen = () => {
         visible={helpVisible}
         onClose={() => setHelpVisible(false)}
         title="Ajuda"
-        message="Entre em contato com a autora: Valentina Gaspar M, Turma: Informática 63 2."
+        message="Caso ainda tenha dúvidas, entre em contato comigo! valentina113457@gmail.com "
       />
 
       <InfoPopup
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "white" },
   stepContainer: { alignItems: "center", paddingTop: 80, height: "45%" },
   logo: { width: 170, height: 170, marginBottom: 10 },
-  userName: { marginTop: 20, fontSize: 22, color: "black", fontFamily: "Poppins_400Regular" },
+  userName: { marginTop: 20, fontSize: 22, color: "black", fontFamily: "Poppins-Regular" },
   cardsContainer: {
     position: "absolute",
     top: "40%",
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
   },
   cardSmall: {
     height: 90,
@@ -185,8 +185,8 @@ const styles = StyleSheet.create({
     elevation: 4,
     zIndex: 10,
   },
-  cardNumber: { fontSize: 20, fontWeight: "bold", color: "#000", fontFamily: "Poppins_400Regular" },
-  cardLabel: { fontSize: 15, color: "#000", marginTop: 5, fontFamily: "Poppins_400Regular" },
+  cardNumber: { fontSize: 20, color: "#000", fontFamily: "Poppins-Medium" },
+  cardLabel: { fontSize: 15, color: "#000", marginTop: 5, fontFamily: "Poppins-Regular" },
   bodyContainer: { height: "55%", backgroundColor: "white", paddingTop: 70, alignItems: "center" },
   option: {
     flexDirection: "row",
@@ -195,9 +195,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
-    width: 320,
+    width: 310,
   },
-  optionText: { fontSize: 16, color: "#000", fontFamily: "Poppins_400Regular" },
+  optionText: { fontSize: 16, color: "#000", fontFamily: "Poppins-Regular" },
   logoutButton: {
     marginTop: "15%",
     paddingVertical: 12,
@@ -212,5 +212,5 @@ const styles = StyleSheet.create({
     elevation: 2,
     width: 320,
   },
-  logoutText: { fontSize: 16, color: "#D86565", fontFamily: "Poppins_400Regular" },
+  logoutText: { fontSize: 16, color: "#D86565", fontFamily: "Poppins-Regular" },
 });

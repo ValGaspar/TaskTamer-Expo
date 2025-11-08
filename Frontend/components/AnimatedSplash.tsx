@@ -2,10 +2,9 @@ import { useEffect, useRef, useContext, useState } from "react";
 import { Animated, View, StyleSheet } from "react-native";
 import { ProgressContext, Task } from "@/components/ProgressContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Asset } from "expo-asset";
+import { Asset } from "expo-asset"; // 👈 importa
 import ConcluidasIcon from "@/assets/images/progressIcon.png";
 import PendentesIcon from "@/assets/images/progressIconRed.png";
-import { registerForPushNotificationsAsync } from "@/utils/notifications";
 
 type Props = {
   finish: () => void;
@@ -19,14 +18,12 @@ export default function AnimatedSplash({ finish }: Props) {
   useEffect(() => {
     const prepare = async () => {
       try {
-        // Carrega os assets do app
         await Asset.loadAsync([
           require("@/assets/images/TasktamerLogo.png"),
           ConcluidasIcon,
           PendentesIcon,
         ]);
 
-        // Carrega tarefas salvas
         const userId = await AsyncStorage.getItem("userId");
         if (userId) {
           const jsonValue = await AsyncStorage.getItem(`@tasks_${userId}`);
@@ -39,12 +36,9 @@ export default function AnimatedSplash({ finish }: Props) {
           await recalcProgress(tasks, userId);
         }
 
-        // Registra push notifications
-        await registerForPushNotificationsAsync();
-
         setAssetsLoaded(true);
       } catch (e) {
-        console.error("Erro ao carregar assets ou progresso:", e);
+        console.log("Erro ao carregar assets ou progresso:", e);
       }
     };
 

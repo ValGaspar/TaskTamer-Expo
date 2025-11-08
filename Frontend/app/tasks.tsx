@@ -74,7 +74,7 @@ export default function TasksScreen() {
   const progress = tasks.length ? (completed / tasks.length) * 100 : 0;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {paddingBottom: 85}]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={28} color="#516953" />
