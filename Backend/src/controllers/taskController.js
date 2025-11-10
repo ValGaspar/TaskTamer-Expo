@@ -18,7 +18,7 @@ const getAllTasks = async (req, res) => {
 const getTasksByUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const tasks = await Task.find({ user: userId }).sort({ createdAt: -1 });
+    const tasks = await Task.find({ userId: userId }).sort({ createdAt: -1 });
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ message: "Erro ao buscar tarefas do usuário", error });
@@ -27,20 +27,22 @@ const getTasksByUser = async (req, res) => {
 
 const createTask = async (req, res) => {
   try {
-    const { title, description, date, priority, user, notificationId } = req.body;
-
+    console.log(req.body)
+    const { title, description, date, priority, notificationId } = req.body;
+    console.log(req.user)
     const newTask = new Task({
+      userId: req.user.userId,
       title,
       description,
       date: date ? new Date(date) : undefined,
       priority: priority || "Prioridade Média",
-      user,
       notificationId,
     });
-
+    console.log(newTask)
     await newTask.save();
     res.status(201).json(newTask);
   } catch (error) {
+    console.log(error)
     res.status(400).json({ message: "Erro ao criar tarefa", error });
   }
 };

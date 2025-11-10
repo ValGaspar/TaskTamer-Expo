@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const logger = require("morgan");
 const connectToDatabase = require("./src/database/connection");
 require("dotenv").config();
 
@@ -8,6 +9,7 @@ const PORT = process.env.PORT || 3000;
 
 const routes = require('./src/routes/index');
 
+app.use(logger("dev"))
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));

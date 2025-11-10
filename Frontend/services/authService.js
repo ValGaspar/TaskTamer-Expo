@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const login = async (email, password) => {
-  const res = await fetch('https://tasktamer-expo.onrender.com/auth', {
+  const res = await fetch('http://192.168.255.129:3000/auth', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),

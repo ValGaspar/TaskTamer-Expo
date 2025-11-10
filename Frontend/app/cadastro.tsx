@@ -64,7 +64,7 @@ export default function CadastroScreen() {
 
     setLoadingCreate(true);
     try {
-      const response = await fetch('https://tasktamer-expo.onrender.com/users', {
+      const response = await fetch('http://192.168.255.129:3000/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),

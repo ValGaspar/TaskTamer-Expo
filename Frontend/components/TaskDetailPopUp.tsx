@@ -32,7 +32,7 @@ export const TaskDetailPopUp = ({ visible, onClose, onSubmit, initialData = null
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPriorityOptions, setShowPriorityOptions] = useState(false);
   const [priorityButtonLayout, setPriorityButtonLayout] = useState<{ x:number;y:number;width:number;height:number } | null>(null);
-
+  console.log(initialData)
   const [fontsLoaded] = useFonts({ Poppins_400Regular, Poppins_500Medium });
 
   useEffect(() => { Asset.loadAsync([calendarIcon, etiquetaIcon]); }, []);
@@ -41,7 +41,7 @@ export const TaskDetailPopUp = ({ visible, onClose, onSubmit, initialData = null
     if (visible) {
       setTitle(initialData?.title || '');
       setDescription(initialData?.description || '');
-      setDate(initialData?.date || new Date());
+      setDate(new Date(initialData?.date) || new Date());
       setPriority(initialData?.priority || '');
       setShowPriorityOptions(false);
     }

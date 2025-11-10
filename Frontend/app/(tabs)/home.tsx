@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, Image } from 'react-native';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, Image, Button } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFonts } from 'expo-font';
-import { Limelight_400Regular } from '@expo-google-fonts/limelight';
-import { LibreBaskerville_400Regular } from '@expo-google-fonts/libre-baskerville';
-import { Poppins_400Regular } from '@expo-google-fonts/poppins';
 import { ThemedView } from '@/components/ThemedView';
 import { CircularProgress } from '@/components/CircularProgress';
 import { TaskDetailPopUp } from '@/components/TaskDetailPopUp';
@@ -12,33 +8,19 @@ import { TaskItem } from '@/components/TaskItem';
 import { TaskWarningPopUp } from '@/components/TaskWarningPopUp';
 import { useFocusEffect } from '@react-navigation/native';
 import { ProgressContext, Task as ProgressTask } from '@/components/ProgressContext';
-
+import { list, create, update, destroy } from '@/services/taskService';
 import { scheduleDayNotifications } from '@/utils/notifications';
 
-type Task = {
-  id: string;
-  title: string;
-  description?: string;
-  date?: Date;
-  priority?: string;
-  done?: boolean;
-  type: 'tarefa';
-  userId: string;
-};
+import { Task, TaskPayload } from '@/services/types';
 
-const STORAGE_KEY = (userId: string) => `@tasks_${userId}`;
+
+// const STORAGE_KEY = (userId: string) => `@tasks_${userId}`;
 
 export default function HomeScreen() {
-  const { recalcProgress } = useContext(ProgressContext);
-
-  const [fontsLoaded] = useFonts({
-    Limelight_400Regular,
-    LibreBaskerville_400Regular,
-    Poppins_400Regular,
-  });
+  // const { recalcProgress } = useContext(ProgressContext);
 
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [userId, setUserId] = useState<string>('');
+  // const [userId, setUserId] = useState<string>('');
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showWarningModal, setShowWarningModal] = useState(false);
@@ -47,30 +29,17 @@ export default function HomeScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
-      const loadData = async () => {
-        const savedUserId = await AsyncStorage.getItem('userId');
-        if (!savedUserId) return;
-        setUserId(savedUserId);
-
-        const jsonValue = await AsyncStorage.getItem(STORAGE_KEY(savedUserId));
-        const userTasks: Task[] = jsonValue
-          ? JSON.parse(jsonValue).map((t: Task) => ({
-              ...t,
-              date: t.date ? new Date(t.date) : undefined,
-            }))
-          : [];
-        setTasks(userTasks);
-
-        await recalcProgress(userTasks as ProgressTask[], savedUserId);
-      };
       loadData();
     }, [])
   );
 
-  useEffect(() => {
-    if (!userId) return;
-    AsyncStorage.setItem(STORAGE_KEY(userId), JSON.stringify(tasks));
-  }, [tasks, userId]);
+  const loadData = async () => {
+    console.log('loadData')
+    const tasks = await list({})
+    setTasks(tasks)
+
+    // await recalcProgress(userTasks as ProgressTask[], savedUserId);
+  };
 
   const openNewTaskModal = () => {
     setEditingTask(null);
@@ -84,59 +53,40 @@ export default function HomeScreen() {
 
   const closeDetailModal = () => setShowDetailModal(false);
 
-  const handleSubmitDetail = async (data: {
-    title: string;
-    description: string;
-    date: Date;
-    priority: string;
-  }) => {
-    const priorityValue = data.priority || 'Prioridade Alta';
-    if (!userId) return;
-
-    let updatedTasks: Task[] = [];
-
+  const handleSubmitDetail = async (data: TaskPayload) => {
     if (editingTask) {
-      updatedTasks = tasks.map((t) =>
-        t.id === editingTask.id ? { ...t, ...data, priority: priorityValue } : t
-      );
+      await update(editingTask._id!, data)
     } else {
       const newTask: Task = {
-        id: Date.now().toString(),
-        type: 'tarefa',
+        _id: 'temp',
         done: false,
-        userId,
         ...data,
-        priority: priorityValue,
         date: data.date || new Date(),
       };
-      updatedTasks = [...tasks, newTask];
 
-      if (updatedTasks.length % 4 === 0) setShowWarningModal(true);
+      await create(newTask)
+
+      if (tasks.length % 4 === 0) setShowWarningModal(true);
     }
 
-    setTasks(updatedTasks);
-    await recalcProgress(updatedTasks as ProgressTask[], userId);
-
-    await scheduleDayNotifications(updatedTasks);
-
+    loadData()
+    // await recalcProgress(updatedTasks as ProgressTask[], userId);
     setShowDetailModal(false);
   };
 
   const toggleDone = async (id: string) => {
-    if (!userId) return;
-    const updated = tasks.map((task) =>
-      task.id === id ? { ...task, done: !task.done } : task
-    );
-    setTasks(updated);
-    await recalcProgress(updated as ProgressTask[], userId);
-    await scheduleDayNotifications(updated); 
+    const currentTask = tasks.find((task) => task._id === id);
+    await update(id, { done: !currentTask?.done })
+    loadData()
+    // await recalcProgress(updated as ProgressTask[], userId);
+    // await scheduleDayNotifications(updated);
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    const filtered = tasks.filter((t) => t.id !== taskId);
-    setTasks(filtered);
-    await recalcProgress(filtered as ProgressTask[], userId);
-    await scheduleDayNotifications(filtered);
+    await destroy(taskId)
+    loadData()
+    // await recalcProgress(filtered as ProgressTask[], userId);
+    // await scheduleDayNotifications(filtered);
     setShowDetailModal(false);
   };
 
@@ -145,8 +95,6 @@ export default function HomeScreen() {
     const bIndex = b.priority ? PRIORITY_ORDER.indexOf(b.priority) : PRIORITY_ORDER.length;
     return aIndex - bIndex;
   });
-
-  if (!fontsLoaded) return null;
 
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter((task) => task.done).length;
@@ -161,7 +109,9 @@ export default function HomeScreen() {
         </View>
 
         <ThemedView style={styles.todayBox}>
+          <Button title="<" onPress={() => {alert('teste')}}/>
           <Text style={styles.todayText}>Hoje</Text>
+          <Button title=">" />
         </ThemedView>
 
         <View style={styles.listContainer}>
@@ -181,12 +131,12 @@ export default function HomeScreen() {
             ) : (
               <FlatList
                 data={sortedTasks}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item._id}
                 renderItem={({ item }) => (
                   <TaskItem
                     done={item.done ?? false}
-                    title={item.title}
-                    onToggle={() => toggleDone(item.id)}
+                    title={`${item.title} (${item._id})`}
+                    onToggle={() => toggleDone(item._id)}
                     onPress={() => openEditTaskModal(item)}
                   />
                 )}
@@ -217,15 +167,15 @@ export default function HomeScreen() {
           initialData={
             editingTask
               ? {
-                  title: editingTask.title,
-                  description: editingTask.description || '',
-                  date: editingTask.date || new Date(),
-                  priority: editingTask.priority || 'Prioridade Alta',
-                }
+                title: editingTask.title,
+                description: editingTask.description || '',
+                date: editingTask.date || new Date(),
+                priority: editingTask.priority || 'Prioridade Alta',
+              }
               : null
           }
           onDelete={
-            editingTask ? () => handleDeleteTask(editingTask.id) : undefined
+            editingTask ? () => handleDeleteTask(editingTask._id) : undefined
           }
         />
       </ThemedView>
@@ -254,7 +204,9 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 35,
     minWidth: 260,
-    alignSelf: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-around'
   },
   todayText: {
     fontSize: 20,
