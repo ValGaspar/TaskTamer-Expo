@@ -13,14 +13,11 @@ import { scheduleDayNotifications } from '@/utils/notifications';
 
 import { Task, TaskPayload } from '@/services/types';
 
-
-// const STORAGE_KEY = (userId: string) => `@tasks_${userId}`;
-
 export default function HomeScreen() {
   // const { recalcProgress } = useContext(ProgressContext);
 
   const [tasks, setTasks] = useState<Task[]>([]);
-  // const [userId, setUserId] = useState<string>('');
+  const [date, setDate] = useState<Date>(new Date());
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showWarningModal, setShowWarningModal] = useState(false);
@@ -33,9 +30,13 @@ export default function HomeScreen() {
     }, [])
   );
 
+  useEffect(() => {
+    loadData()
+  }, [date])
+
   const loadData = async () => {
     console.log('loadData')
-    const tasks = await list({})
+    const tasks = await list({ date: date.toISOString().split("T")[0] })
     setTasks(tasks)
 
     // await recalcProgress(userTasks as ProgressTask[], savedUserId);
@@ -101,6 +102,29 @@ export default function HomeScreen() {
   const progressPercent =
     totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
+  const dateLabel = () => {
+    const dd = date.toISOString().split("T")[0]
+    const today = (new Date()).toISOString().split("T")[0]
+    if (dd === today) {
+      return "Hoje"
+    } else {
+      return fomratDate()
+    }
+  }
+
+  const fomratDate = () => {
+    const [year, month, day] = date.toISOString().split("T")[0].split("-")
+    return `${day}/${month}/${year}`
+  }
+
+  const previousDay = () => {
+    setDate(new Date(date.getFullYear(), date.getMonth(), date.getDate()-1))
+  }
+
+  const nextDay = () => {
+    setDate(new Date(date.getFullYear(), date.getMonth(), date.getDate()+1))
+  }
+
   return (
     <ThemedView style={[styles.stepContainer, { paddingBottom: 85 }]}>
       <ThemedView style={styles.Container}>
@@ -109,9 +133,9 @@ export default function HomeScreen() {
         </View>
 
         <ThemedView style={styles.todayBox}>
-          <Button title="<" onPress={() => {alert('teste')}}/>
-          <Text style={styles.todayText}>Hoje</Text>
-          <Button title=">" />
+          <Button title="<" onPress={previousDay}/>
+          <Text style={styles.todayText}>{dateLabel()}</Text>
+          <Button title=">" onPress={nextDay} />
         </ThemedView>
 
         <View style={styles.listContainer}>

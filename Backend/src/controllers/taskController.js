@@ -18,7 +18,13 @@ const getAllTasks = async (req, res) => {
 const getTasksByUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const tasks = await Task.find({ userId: userId }).sort({ createdAt: -1 });
+    const { date } = req.query;
+    const [year, month, day] = date.split("-")
+    const tasks = await Task.find({ userId: userId, date: {
+        $gte: new Date(year, month-1, day, 0,0,0), 
+        $lt: new Date(year, month-1, day, 23,59,59)
+    } }).sort({ createdAt: -1 });
+    console.log(tasks)
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ message: "Erro ao buscar tarefas do usuário", error });
