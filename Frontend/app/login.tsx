@@ -17,7 +17,6 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Asset } from 'expo-asset';
 import { login } from '@/services/authService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLoadFonts } from '../hooks/useLoadFonts';
 
 export default function LoginScreen() {
@@ -132,8 +131,17 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  stepContainer: { flex: 1, alignItems: 'center', backgroundColor: 'white', paddingTop: 60 },
-  TaskTamerLogo: { width: '80%', resizeMode: 'contain', marginBottom: 150 },
+  stepContainer: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: 'white',
+    paddingTop: 60,
+  },
+  TaskTamerLogo: {
+    width: '80%',
+    resizeMode: 'contain',
+    marginBottom: 150,
+  },
   titleContainer: {
     textAlign: 'center',
     fontSize: 24,
@@ -150,7 +158,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  buttonText: { color: 'white', fontSize: 18, fontFamily: 'Poppins-Bold' },
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
+    fontFamily: 'Poppins-Bold',
+  },
   inputContainer: {
     height: 45,
     flexDirection: 'row',
@@ -177,9 +189,27 @@ const styles = StyleSheet.create({
     marginRight: 10,
     alignSelf: 'center',
   },
-  line: { borderColor: 'black', width: '100%', height: 1, marginVertical: 30, marginTop: 170 },
-  text: { color: 'black', fontFamily: 'Poppins-Regular', fontSize: 15 },
-  criar: { fontFamily: 'Poppins-Regular', color: '#98B88F', fontSize: 15 },
-  inputSpacing: { flex: 0.1 },
-  buttonSpacing: { flex: 0.2 },
+  line: {
+    borderColor: 'black',
+    width: '100%',
+    height: 1,
+    marginVertical: 30,
+    marginTop: 170,
+  },
+  text: {
+    color: 'black',
+    fontFamily: 'Poppins-Regular',
+    fontSize: 15,
+  },
+  criar: {
+    fontFamily: 'Poppins-Regular',
+    color: '#98B88F',
+    fontSize: 15,
+  },
+  inputSpacing: {
+    flex: 0.1,
+  },
+  buttonSpacing: {
+    flex: 0.2,
+  },
 });

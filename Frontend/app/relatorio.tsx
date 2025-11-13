@@ -1,84 +1,53 @@
-import React, { useContext, useEffect, useState, useCallback } from "react";
+import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
-import { ProgressContext, Task } from "@/components/ProgressContext";
 import { ProgressCard } from "@/components/ProgressCard";
 import ConcluidasIcon from "@/assets/images/progressIcon.png";
 import PendentesIcon from "@/assets/images/progressIconRed.png";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BarChart } from "react-native-chart-kit";
+import { getStatistics } from '@/services/taskService';
 
 const screenWidth = Dimensions.get("window").width;
 
 export default function RelatorioScreen() {
   const navigation = useNavigation();
-  const { recalcProgress } = useContext(ProgressContext);
 
   const [weeklyCounts, setWeeklyCounts] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
   const [completed, setCompleted] = useState(0);
   const [remaining, setRemaining] = useState(0);
   const [percentage, setPercentage] = useState(0);
 
-  const calcularTarefasSemana = async () => {
-    const userId = await AsyncStorage.getItem("userId");
-    if (!userId) return;
-
-    const jsonValue = await AsyncStorage.getItem(`@tasks_${userId}`);
-    const tasks: Task[] = jsonValue ? JSON.parse(jsonValue) : [];
-
-    const concluidas = tasks.filter((t) => t.done).length;
-    const pendentes = tasks.length - concluidas;
-    const perc = tasks.length > 0 ? Math.round((concluidas / tasks.length) * 100) : 0;
-
-    setCompleted(concluidas);
-    setRemaining(pendentes);
-    setPercentage(perc);
-
-    await recalcProgress(tasks, userId);
-
-    const counts = [0, 0, 0, 0, 0, 0, 0];
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
-    monday.setHours(0, 0, 0, 0);
-
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    sunday.setHours(23, 59, 59, 999);
-
-    tasks.forEach((task) => {
-      if (task.done && task.date) {
-        const taskDate = new Date(task.date);
-        if (taskDate >= monday && taskDate <= sunday) {
-          const index = (taskDate.getDay() + 6) % 7;
-          counts[index]++;
-        }
-      }
-    });
-
-    setWeeklyCounts(counts);
-  };
-
   useFocusEffect(
-    useCallback(() => {
-      calcularTarefasSemana();
+    React.useCallback(() => {
+      loadData();
     }, [])
   );
 
-  useEffect(() => {
-    calcularTarefasSemana();
-  }, []);
+  const loadData = async () => {
+    const statistics = await getStatistics()
+    let done = 0
+    const counts = [0, 0, 0, 0, 0, 0, 0];
+    statistics.graph.forEach((day: any) => {
+      const currentDay = new Date(day._id).getDay()
+      counts[currentDay] += day.count
+      done += day.count
+    })
+    setWeeklyCounts(counts);
+    setCompleted(done)
+    setRemaining(statistics.pending)
+    setPercentage(Math.round((done / (done + statistics.pending)) * 100))
+  };
 
   const totalWeek = weeklyCounts.reduce((a, b) => a + b, 0);
 
   const summaryMessage =
     totalWeek === 0
-      ? "Você ainda não concluiu nenhuma tarefa. Que tal começar por algo simples hoje? 💪" 
-      : percentage < 100 
-      ? "Você está no caminho certo! Continue dedicando um tempinho por dia. 🌱" 
-      : "Parabéns! Todas as tarefas foram concluídas com sucesso. 🎉"
+      ? "Você ainda não concluiu nenhuma tarefa. Que tal começar por algo simples hoje? 💪"
+      : percentage < 100
+        ? "Você está no caminho certo! Continue dedicando um tempinho por dia. 🌱"
+        : "Parabéns! Todas as tarefas foram concluídas com sucesso. 🎉"
+
   const weeklyData = {
     labels: ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"],
     datasets: [{ data: weeklyCounts }],
@@ -145,13 +114,43 @@ export default function RelatorioScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", paddingHorizontal: 16, paddingTop: 40 },
-  header: { flexDirection: "row", alignItems: "center", marginBottom: 35, marginVertical: 30 },
-  headerTitle: { fontSize: 22, color: "#516953", fontFamily: "Poppins_500Medium", marginLeft: 10 },
-  chartHeader: { alignItems: "center", marginBottom: 10 },
-  chartTitle: { fontSize: 18, fontFamily: "Poppins_500Medium" },
-  chartSubtitle: { fontSize: 13, color: "#516953", fontFamily: "Poppins_400Regular" },
-  cardsRow: { flexDirection: "row", justifyContent: "space-evenly", marginTop: 10, gap: 16 },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    paddingTop: 40,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 35,
+    marginVertical: 30,
+  },
+  headerTitle: {
+    fontSize: 22,
+    color: "#516953",
+    fontFamily: "Poppins_500Medium",
+    marginLeft: 10,
+  },
+  chartHeader: {
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  chartTitle: {
+    fontSize: 18,
+    fontFamily: "Poppins_500Medium",
+  },
+  chartSubtitle: {
+    fontSize: 13,
+    color: "#516953",
+    fontFamily: "Poppins_400Regular",
+  },
+  cardsRow: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    marginTop: 10,
+    gap: 16,
+  },
   summaryCard: {
     backgroundColor: "transparent",
     borderWidth: 1.5,
@@ -169,6 +168,15 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingVertical: 10,
   },
-  summaryContent: { padding: 16, alignItems: "center", justifyContent: "center" },
-  summaryText: { fontSize: 14, fontFamily: "Poppins_400Regular", color: "#000", textAlign: "center" },
+  summaryContent: {
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  summaryText: {
+    fontSize: 14,
+    fontFamily: "Poppins_400Regular",
+    color: "#000",
+    textAlign: "center",
+  },
 });

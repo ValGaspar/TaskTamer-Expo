@@ -3,14 +3,8 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { HapticTab } from '@/components/HapticTab';
 import { Ionicons } from '@expo/vector-icons';
-import { useFonts, Poppins_400Regular } from '@expo-google-fonts/poppins';
 
 export default function TabLayout() {
-  const [fontsLoaded] = useFonts({
-    Poppins_400Regular,
-  });
-
-  if (!fontsLoaded) return null;
 
   return (
     <Tabs

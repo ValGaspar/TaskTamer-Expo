@@ -27,7 +27,6 @@ const sendPushNotification = async (req, res) => {
     });
 
     const data = await response.json();
-    console.log("Resposta do Expo:", data); // log detalhado
     res.json({ success: true, data });
   } catch (error) {
     console.error("Erro completo ao enviar notificação:", error);

@@ -38,7 +38,7 @@ export default function AnimatedSplash({ finish }: Props) {
 
         setAssetsLoaded(true);
       } catch (e) {
-        console.log("Erro ao carregar assets ou progresso:", e);
+      
       }
     };
 

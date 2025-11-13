@@ -1,20 +1,16 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, FlatList, TouchableOpacity, Image, Button } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemedView } from '@/components/ThemedView';
 import { CircularProgress } from '@/components/CircularProgress';
 import { TaskDetailPopUp } from '@/components/TaskDetailPopUp';
 import { TaskItem } from '@/components/TaskItem';
 import { TaskWarningPopUp } from '@/components/TaskWarningPopUp';
 import { useFocusEffect } from '@react-navigation/native';
-import { ProgressContext, Task as ProgressTask } from '@/components/ProgressContext';
 import { list, create, update, destroy } from '@/services/taskService';
-import { scheduleDayNotifications } from '@/utils/notifications';
 
 import { Task, TaskPayload } from '@/services/types';
 
 export default function HomeScreen() {
-  // const { recalcProgress } = useContext(ProgressContext);
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [date, setDate] = useState<Date>(new Date());
@@ -35,11 +31,9 @@ export default function HomeScreen() {
   }, [date])
 
   const loadData = async () => {
-    console.log('loadData')
+  
     const tasks = await list({ date: date.toISOString().split("T")[0] })
     setTasks(tasks)
-
-    // await recalcProgress(userTasks as ProgressTask[], savedUserId);
   };
 
   const openNewTaskModal = () => {
@@ -71,7 +65,6 @@ export default function HomeScreen() {
     }
 
     loadData()
-    // await recalcProgress(updatedTasks as ProgressTask[], userId);
     setShowDetailModal(false);
   };
 
@@ -79,15 +72,11 @@ export default function HomeScreen() {
     const currentTask = tasks.find((task) => task._id === id);
     await update(id, { done: !currentTask?.done })
     loadData()
-    // await recalcProgress(updated as ProgressTask[], userId);
-    // await scheduleDayNotifications(updated);
   };
 
   const handleDeleteTask = async (taskId: string) => {
     await destroy(taskId)
     loadData()
-    // await recalcProgress(filtered as ProgressTask[], userId);
-    // await scheduleDayNotifications(filtered);
     setShowDetailModal(false);
   };
 
@@ -133,9 +122,9 @@ export default function HomeScreen() {
         </View>
 
         <ThemedView style={styles.todayBox}>
-          <Button title="<" onPress={previousDay}/>
+          <Button title="-" onPress={previousDay} color={'black'}/>
           <Text style={styles.todayText}>{dateLabel()}</Text>
-          <Button title=">" onPress={nextDay} />
+          <Button title="+" onPress={nextDay} color={'black'}/>
         </ThemedView>
 
         <View style={styles.listContainer}>
@@ -159,7 +148,7 @@ export default function HomeScreen() {
                 renderItem={({ item }) => (
                   <TaskItem
                     done={item.done ?? false}
-                    title={`${item.title} (${item._id})`}
+                    title={`${item.title}`}
                     onToggle={() => toggleDone(item._id)}
                     onPress={() => openEditTaskModal(item)}
                   />

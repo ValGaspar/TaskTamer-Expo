@@ -84,7 +84,6 @@ export default function CadastroScreen() {
         setPassword('');
         setConfirmPassword('');
 
-        // Alert.alert('Sucesso', 'Sua conta foi criada!');
         router.replace('/index');
       } else {
         Alert.alert('Erro', data.message || 'Erro ao criar usuário');
@@ -173,7 +172,6 @@ export default function CadastroScreen() {
             />
           </ThemedView>
 
-          {/* Espaço para mensagem de erro */}
           <View style={styles.errorContainer}>
             {erroSenha ? <ThemedText style={styles.errorText}>{erroSenha}</ThemedText> : null}
           </View>
@@ -253,7 +251,6 @@ const styles = StyleSheet.create({
     paddingVertical: Platform.OS === 'ios' ? 12 : 0,
     marginBottom: 20,
   },
-
   input: {
     flex: 1,
     fontSize: 16,
@@ -294,7 +291,7 @@ const styles = StyleSheet.create({
   },
   errorContainer: {
     width: '75%',
-    minHeight: 20, // mantém espaço mesmo sem mensagem
+    minHeight: 20,
     marginBottom: 0
   },
   errorText: {

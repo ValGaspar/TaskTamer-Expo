@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Função para deletar a conta do usuário logado
 export const deleteAccount = async () => {
   const token = await AsyncStorage.getItem('accessToken');
   const userId = await AsyncStorage.getItem('userId');

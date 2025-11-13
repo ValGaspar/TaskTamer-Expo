@@ -5,10 +5,10 @@ import { useFonts, Poppins_400Regular, Poppins_500Medium } from '@expo-google-fo
 import { Asset } from 'expo-asset';
 
 type TaskData = {
-  title: string;
-  description: string;
-  date: Date;
-  priority: string;
+  title?: string;
+  description?: string;
+  date?: Date;
+  priority?: string;
 };
 
 type Props = {
@@ -31,8 +31,7 @@ export const TaskDetailPopUp = ({ visible, onClose, onSubmit, initialData = null
   const [priority, setPriority] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPriorityOptions, setShowPriorityOptions] = useState(false);
-  const [priorityButtonLayout, setPriorityButtonLayout] = useState<{ x:number;y:number;width:number;height:number } | null>(null);
-  console.log(initialData)
+  const [priorityButtonLayout, setPriorityButtonLayout] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const [fontsLoaded] = useFonts({ Poppins_400Regular, Poppins_500Medium });
 
   useEffect(() => { Asset.loadAsync([calendarIcon, etiquetaIcon]); }, []);
@@ -41,7 +40,7 @@ export const TaskDetailPopUp = ({ visible, onClose, onSubmit, initialData = null
     if (visible) {
       setTitle(initialData?.title || '');
       setDescription(initialData?.description || '');
-      setDate(new Date(initialData?.date) || new Date());
+      setDate(initialData?.date ? new Date(initialData?.date) : new Date());
       setPriority(initialData?.priority || '');
       setShowPriorityOptions(false);
     }
@@ -69,40 +68,40 @@ export const TaskDetailPopUp = ({ visible, onClose, onSubmit, initialData = null
           <View style={styles.popup}>
             <Text style={styles.title}>{initialData ? 'Editar Tarefa' : 'Nova Tarefa'}</Text>
 
-            <TextInput style={styles.input} placeholder="Título" placeholderTextColor="#999" value={title} onChangeText={setTitle} />
-            <TextInput style={[styles.input, styles.textarea]} placeholder="Descrição" placeholderTextColor="#999" value={description} onChangeText={setDescription} multiline numberOfLines={4} />
+            <TextInput style={styles.input} placeholder="Título" placeholderTextColor="#888" value={title} onChangeText={setTitle} />
+            <TextInput style={[styles.input, styles.textarea]} placeholder="Descrição" placeholderTextColor="#888" value={description} onChangeText={setDescription} multiline numberOfLines={4} />
 
             <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.inputButton}>
               <Image source={calendarIcon} style={styles.icon} />
-              <Text style={styles.inputButtonText}>{date.toLocaleDateString('pt-BR')}</Text>
+              <Text style={styles.inputButtonText}>{date.toLocaleDateString('pt-BR')} </Text>
             </TouchableOpacity>
 
             <DateTimePickerModal isVisible={showDatePicker} mode="date" onConfirm={handleConfirmDate} onCancel={handleCancelDate} minimumDate={new Date()} />
 
-            <View style={{ width:'100%', zIndex:10 }}>
+            <View style={{ width: '100%', zIndex: 10 }}>
               <TouchableOpacity onPress={togglePriorityOptions} style={styles.inputButton} onLayout={onPriorityButtonLayout}>
                 <Image source={etiquetaIcon} style={styles.icon} />
-                <Text style={[styles.inputButtonText, !priority && {color:'#999'}]}>{priority || 'Nível de Prioridade'}</Text>
+                <Text style={[styles.inputButtonText, !priority && { color: '#888' }]}>{priority || 'Nível de Prioridade'}</Text>
               </TouchableOpacity>
 
               {showPriorityOptions && priorityButtonLayout && (
-                <View style={[styles.priorityDropdown, { position:'absolute', top:priorityButtonLayout.height+4, left:0, width:priorityButtonLayout.width }]}>
+                <View style={[styles.priorityDropdown, { position: 'absolute', top: priorityButtonLayout.height + 4, left: 0, width: priorityButtonLayout.width }]}>
                   {PRIORITY_OPTIONS.map(option => (
-                    <TouchableOpacity key={option} onPress={() => selectPriority(option)} style={[styles.priorityOption, option===priority && styles.priorityOptionSelected]}>
-                      <Text style={[styles.priorityOptionText, option===priority && styles.priorityOptionTextSelected]}>{option}</Text>
+                    <TouchableOpacity key={option} onPress={() => selectPriority(option)} style={[styles.priorityOption, option === priority && styles.priorityOptionSelected]}>
+                      <Text style={[styles.priorityOptionText, option === priority && styles.priorityOptionTextSelected]}>{option}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               )}
             </View>
 
-            <View style={{ flexDirection:'row', justifyContent:'space-between', width:'100%', marginTop:8 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginTop: 8 }}>
               {initialData && onDelete && (
-                <TouchableOpacity style={[styles.deleteButton,{flex:1, marginRight:5}]} onPress={onDelete}>
+                <TouchableOpacity style={[styles.deleteButton, { flex: 1, marginRight: 5 }]} onPress={onDelete}>
                   <Text style={styles.deleteButtonText}>Excluir</Text>
                 </TouchableOpacity>
               )}
-              <TouchableOpacity style={[styles.saveButton,{flex:1, marginLeft:5}]} onPress={handleSubmit}>
+              <TouchableOpacity style={[styles.saveButton, { flex: 1, marginLeft: 5 }]} onPress={handleSubmit}>
                 <Text style={styles.saveButtonText}>{initialData ? 'Confirmar' : 'Salvar'}</Text>
               </TouchableOpacity>
             </View>
@@ -116,22 +115,115 @@ export const TaskDetailPopUp = ({ visible, onClose, onSubmit, initialData = null
 };
 
 const styles = StyleSheet.create({
-  overlay:{flex:1, justifyContent:'center', alignItems:'center', backgroundColor:'rgba(0,0,0,0.5)'},
-  popup:{backgroundColor:'#fff', padding:25, borderRadius:14, width:300, alignItems:'center', elevation:10},
-  title:{fontSize:20, color:'#4A5C42', marginBottom:20, fontFamily:'Poppins_400Regular'},
-  input:{backgroundColor:'#E8E8E8', width:'100%', paddingHorizontal:12, paddingVertical:10, borderRadius:8, marginBottom:12, fontSize:16, fontFamily:'Poppins_400Regular'},
-  textarea:{height:100, textAlignVertical:'top'},
-  inputButton:{flexDirection:'row', alignItems:'center', backgroundColor:'#E8E8E8', paddingVertical:12, paddingHorizontal:10, borderRadius:8, marginBottom:12, width:'100%'},
-  inputButtonText:{fontSize:16, marginLeft:8, fontFamily:'Poppins_400Regular', color:'#000'},
-  icon:{width:20,height:20,resizeMode:'contain', tintColor:'#333'},
-  priorityDropdown:{backgroundColor:'#f0f0f0', borderRadius:8, paddingVertical:4, shadowColor:'#000', shadowOffset:{width:0,height:2}, shadowOpacity:0.2, shadowRadius:3, elevation:5, zIndex:20},
-  priorityOption:{paddingVertical:8,paddingHorizontal:12},
-  priorityOptionSelected:{backgroundColor:'#98B88F',borderRadius:6},
-  priorityOptionText:{fontSize:16,fontFamily:'Poppins_400Regular',color:'#000'},
-  priorityOptionTextSelected:{color:'#fff'},
-  saveButton:{backgroundColor:'#000',paddingVertical:12,borderRadius:8,alignItems:'center'},
-  saveButtonText:{color:'#fff',fontSize:16,fontFamily:'Poppins_500Medium'},
-  deleteButton:{backgroundColor:'#D86565',paddingVertical:12,borderRadius:8,alignItems:'center'},
-  deleteButtonText:{color:'#fff',fontSize:16,fontFamily:'Poppins_500Medium'},
-  cancelText:{marginTop:15,fontSize:16,color:'#000',fontFamily:'Poppins_400Regular'},
+  overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  popup: {
+    backgroundColor: '#fff',
+    padding: 25,
+    borderRadius: 14,
+    width: 300,
+    alignItems: 'center',
+    elevation: 10,
+  },
+  title: {
+    fontSize: 20,
+    color: '#888',
+    marginBottom: 20,
+    fontFamily: 'Poppins_400Regular',
+  },
+  input: {
+    backgroundColor: '#E8E8E8',
+    width: '100%',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginBottom: 12,
+    fontSize: 16,
+    fontFamily: 'Poppins_400Regular',
+  },
+  textarea: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  inputButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8E8E8',
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    marginBottom: 12,
+    width: '100%',
+  },
+  inputButtonText: {
+    fontSize: 16,
+    marginLeft: 8,
+    fontFamily: 'Poppins_400Regular',
+    color: '#888',
+  },
+  icon: {
+    width: 20,
+    height: 20,
+    resizeMode: 'contain',
+    tintColor: '#888',
+  },
+  priorityDropdown: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    paddingVertical: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
+    zIndex: 20,
+  },
+  priorityOption: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  priorityOptionSelected: {
+    backgroundColor: '#98B88F',
+    borderRadius: 6,
+  },
+  priorityOptionText: {
+    fontSize: 16,
+    fontFamily: 'Poppins_400Regular',
+    color: '#000',
+  },
+  priorityOptionTextSelected: {
+    color: '#fff',
+  },
+  saveButton: {
+    backgroundColor: '#000',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'Poppins_500Medium',
+  },
+  deleteButton: {
+    backgroundColor: '#D86565',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'Poppins_500Medium',
+  },
+  cancelText: {
+    marginTop: 15,
+    fontSize: 16,
+    color: '#000',
+    fontFamily: 'Poppins_400Regular',
+  },
 });

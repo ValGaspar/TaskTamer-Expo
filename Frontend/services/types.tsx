@@ -16,3 +16,8 @@ export type TaskPayload = {
 	priority?: string;
 	done?: boolean;
 }
+
+export type Statistics = {
+  graph: any;
+  pending: number;
+}

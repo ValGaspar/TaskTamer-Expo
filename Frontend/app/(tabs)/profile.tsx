@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { View, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { ThemedView } from "@/components/ThemedView";
@@ -20,7 +20,6 @@ const ProfileScreen = () => {
 
   const router = useRouter();
 
-  // Carrega dados do usuário ao montar
   React.useEffect(() => {
     const loadUserData = async () => {
       const savedName = await AsyncStorage.getItem("userName");
@@ -107,7 +106,7 @@ const ProfileScreen = () => {
             }}
           >
             <ThemedText style={styles.optionText}>{item}</ThemedText>
-            <ThemedText style={{ fontSize: 18 }}>›</ThemedText>
+            <ThemedText style={{ fontSize: 18, color: '#888' }}>›</ThemedText>
           </TouchableOpacity>
         ))}
 
@@ -148,10 +147,26 @@ const ProfileScreen = () => {
 export default ProfileScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "white" },
-  stepContainer: { alignItems: "center", paddingTop: 80, height: "45%" },
-  logo: { width: 170, height: 170, marginBottom: 10 },
-  userName: { marginTop: 20, fontSize: 22, color: "black", fontFamily: "Poppins-Regular" },
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  stepContainer: {
+    alignItems: "center",
+    paddingTop: 80,
+    height: "45%",
+  },
+  logo: {
+    width: 170,
+    height: 170,
+    marginBottom: 10,
+  },
+  userName: {
+    marginTop: 20,
+    fontSize: 22,
+    color: "black",
+    fontFamily: "Poppins-Regular",
+  },
   cardsContainer: {
     position: "absolute",
     top: "40%",
@@ -185,9 +200,23 @@ const styles = StyleSheet.create({
     elevation: 4,
     zIndex: 10,
   },
-  cardNumber: { fontSize: 20, color: "#000", fontFamily: "Poppins-Medium" },
-  cardLabel: { fontSize: 15, color: "#000", marginTop: 5, fontFamily: "Poppins-Regular" },
-  bodyContainer: { height: "55%", backgroundColor: "white", paddingTop: 70, alignItems: "center" },
+  cardNumber: {
+    fontSize: 20,
+    color: "#000",
+    fontFamily: "Poppins-Medium",
+  },
+  cardLabel: {
+    fontSize: 15,
+    color: "#000",
+    marginTop: 5,
+    fontFamily: "Poppins-Regular",
+  },
+  bodyContainer: {
+    height: "55%",
+    backgroundColor: "white",
+    paddingTop: 70,
+    alignItems: "center",
+  },
   option: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -197,7 +226,11 @@ const styles = StyleSheet.create({
     borderBottomColor: "#eee",
     width: 310,
   },
-  optionText: { fontSize: 16, color: "#000", fontFamily: "Poppins-Regular" },
+  optionText: {
+    fontSize: 16,
+    color: "#000",
+    fontFamily: "Poppins-Regular",
+  },
   logoutButton: {
     marginTop: "15%",
     paddingVertical: 12,
@@ -212,5 +245,9 @@ const styles = StyleSheet.create({
     elevation: 2,
     width: 320,
   },
-  logoutText: { fontSize: 16, color: "#D86565", fontFamily: "Poppins-Regular" },
+  logoutText: {
+    fontSize: 16,
+    color: "#D86565",
+    fontFamily: "Poppins-Regular",
+  },
 });

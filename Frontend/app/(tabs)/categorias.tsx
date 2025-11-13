@@ -7,8 +7,7 @@ import type { RootStackParamList } from '../rootNavigator';
 const categories = [
   { id: '1', name: 'Tarefas', image: require('@/assets/images/tasks.png') },
   { id: '2', name: 'Relatório de Atividade', image: require('@/assets/images/report.png') },
-  { id: '3', name: 'Calendário', image: require('@/assets/images/calendar.png') },
-  { id: '4', name: 'Dicas', image: require('@/assets/images/tips.png') },
+  { id: '3', name: 'Dicas', image: require('@/assets/images/tips.png') },
 ];
 
 export default function CategoriesScreen() {
@@ -43,8 +42,8 @@ export default function CategoriesScreen() {
               navigation.getParent()?.navigate('tasks');
             } else if (item.name === 'Relatório de Atividade') {
               navigation.getParent()?.navigate('relatorio');
-            } else {
-              console.log('Outra categoria:', item.name);
+            } else if (item.name === 'Dicas') {
+              navigation.getParent()?.navigate('tips');
             }
           }}
         >
@@ -57,7 +56,11 @@ export default function CategoriesScreen() {
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
   container: {
     flex: 1,
     padding: 15,
@@ -69,7 +72,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#98B88F',
     borderRadius: 5,
     padding: 20,
-    marginVertical: 15,
+    marginVertical: 20,
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

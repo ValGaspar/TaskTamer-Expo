@@ -13,7 +13,6 @@ export const login = async (email, password) => {
     throw new Error(data.message || 'Erro ao realizar login');
   }
 
-  // Salva tokens e dados do usuário
   await AsyncStorage.setItem('accessToken', data.accessToken);
   await AsyncStorage.setItem('refreshToken', data.refreshToken);
   await AsyncStorage.setItem('userId', data.userId);
