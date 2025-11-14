@@ -47,24 +47,25 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 24,
-		fontFamily: "Poppins_500Medium",
+		fontFamily: "Poppins-Regular",
 		marginBottom: 10,
 	},
 	message: {
 		fontSize: 15,
 		textAlign: 'center',
 		marginBottom: 20,
-		fontFamily: "Poppins_400Regular",
+		fontFamily: "Poppins-Regular",
 	},
 	button: {
 		backgroundColor: 'black',
-		paddingVertical: 10,
+		paddingVertical: 8,
 		paddingHorizontal: 25,
 		borderRadius: 10,
 	},
 	buttonText: {
 		color: '#fff',
-		fontSize: 16,
+		fontSize: 14,
+		fontFamily: "Poppins-Regular",
 	},
 });
 

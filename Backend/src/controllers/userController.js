@@ -75,9 +75,27 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const savePushToken = async (req, res) => {
+  try {
+    const { userId, token } = req.body;
+    if (!userId || !token) return res.status(400).json({ message: "userId e token são obrigatórios" });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "Usuário não encontrado" });
+
+    user.pushToken = token;
+    await user.save();
+
+    res.json({ message: "Token salvo com sucesso!" });
+  } catch (error) {
+    res.status(500).json({ message: "Erro ao salvar token", error });
+  }
+};
+
 module.exports = {
   getAllUsers,
   createUser,
   updateUser,
-  deleteUser
+  deleteUser,
+  savePushToken
 };

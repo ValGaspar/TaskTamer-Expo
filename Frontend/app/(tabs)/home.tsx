@@ -1,74 +1,40 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, Image } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFonts } from 'expo-font';
-import { Limelight_400Regular } from '@expo-google-fonts/limelight';
-import { LibreBaskerville_400Regular } from '@expo-google-fonts/libre-baskerville';
-import { Poppins_400Regular } from '@expo-google-fonts/poppins';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, Image, Button } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { CircularProgress } from '@/components/CircularProgress';
 import { TaskDetailPopUp } from '@/components/TaskDetailPopUp';
 import { TaskItem } from '@/components/TaskItem';
 import { TaskWarningPopUp } from '@/components/TaskWarningPopUp';
 import { useFocusEffect } from '@react-navigation/native';
-import { ProgressContext, Task as ProgressTask } from '@/components/ProgressContext';
+import { list, create, update, destroy } from '@/services/taskService';
 
-type Task = {
-  id: string;
-  title: string;
-  description?: string;
-  date?: Date;
-  priority?: string;
-  done?: boolean;
-  type: 'tarefa';
-  userId: string;
-};
-
-const STORAGE_KEY = (userId: string) => `@tasks_${userId}`;
+import { Task, TaskPayload } from '@/services/types';
 
 export default function HomeScreen() {
-  const { recalcProgress } = useContext(ProgressContext);
-
-  const [fontsLoaded] = useFonts({
-    Limelight_400Regular,
-    LibreBaskerville_400Regular,
-    Poppins_400Regular,
-  });
 
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [userId, setUserId] = useState<string>('');
+  const [date, setDate] = useState<Date>(new Date());
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showWarningModal, setShowWarningModal] = useState(false);
 
   const PRIORITY_ORDER = ['Prioridade Alta', 'Prioridade Média', 'Prioridade Baixa'];
 
-  // Carrega usuário e tarefas
   useFocusEffect(
     React.useCallback(() => {
-      const loadData = async () => {
-        const savedUserId = await AsyncStorage.getItem('userId');
-        if (!savedUserId) return;
-        setUserId(savedUserId);
-
-        const jsonValue = await AsyncStorage.getItem(STORAGE_KEY(savedUserId));
-        const userTasks: Task[] = jsonValue
-          ? JSON.parse(jsonValue).map((t: Task) => ({ ...t, date: t.date ? new Date(t.date) : undefined }))
-          : [];
-        setTasks(userTasks);
-
-        // Atualiza streak/dias produtivos
-        await recalcProgress(userTasks as ProgressTask[], savedUserId);
-      };
       loadData();
     }, [])
   );
 
-  // Salva tarefas
   useEffect(() => {
-    if (!userId) return;
-    AsyncStorage.setItem(STORAGE_KEY(userId), JSON.stringify(tasks));
-  }, [tasks, userId]);
+    loadData()
+  }, [date])
+
+  const loadData = async () => {
+
+    const tasks = await list({ date: date.toISOString().split("T")[0] })
+    setTasks(tasks)
+  };
 
   const openNewTaskModal = () => {
     setEditingTask(null);
@@ -82,39 +48,39 @@ export default function HomeScreen() {
 
   const closeDetailModal = () => setShowDetailModal(false);
 
-  const handleSubmitDetail = async (data: { title: string; description: string; date: Date; priority: string }) => {
-    const priorityValue = data.priority || 'Prioridade Alta';
-
-    if (!userId) return;
-
+  const handleSubmitDetail = async (data: TaskPayload) => {
     if (editingTask) {
-      const updated = tasks.map(t => (t.id === editingTask.id ? { ...t, ...data, priority: priorityValue } : t));
-      setTasks(updated);
-      await recalcProgress(updated as ProgressTask[], userId);
+      await update(editingTask._id!, data)
     } else {
       const newTask: Task = {
-        id: Date.now().toString(),
-        type: 'tarefa',
+        _id: 'temp',
         done: false,
-        userId,
         ...data,
-        priority: priorityValue,
         date: data.date || new Date(),
       };
-      const updatedTasks = [...tasks, newTask];
-      setTasks(updatedTasks);
-      await recalcProgress(updatedTasks as ProgressTask[], userId);
 
-      if (updatedTasks.length % 4 === 0) setShowWarningModal(true);
+      await create(newTask)
     }
+
+    await loadData();
+    
+    if (tasks.length % 4 === 0) {
+      setShowWarningModal(true)
+    }
+
     setShowDetailModal(false);
   };
 
   const toggleDone = async (id: string) => {
-    if (!userId) return;
-    const updated = tasks.map(task => (task.id === id ? { ...task, done: !task.done } : task));
-    setTasks(updated);
-    await recalcProgress(updated as ProgressTask[], userId);
+    const currentTask = tasks.find((task) => task._id === id);
+    await update(id, { done: !currentTask?.done })
+    loadData()
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    await destroy(taskId)
+    loadData()
+    setShowDetailModal(false);
   };
 
   const sortedTasks = [...tasks].sort((a, b) => {
@@ -123,50 +89,95 @@ export default function HomeScreen() {
     return aIndex - bIndex;
   });
 
-  if (!fontsLoaded) return null;
-
   const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(task => task.done).length;
-  const progressPercent = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+  const completedTasks = tasks.filter((task) => task.done).length;
+  const progressPercent =
+    totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+
+  const dateLabel = () => {
+    const dd = date.toISOString().split("T")[0]
+    const today = (new Date()).toISOString().split("T")[0]
+    if (dd === today) {
+      return "Hoje"
+    } else {
+      return fomratDate()
+    }
+  }
+
+  const fomratDate = () => {
+    const [year, month, day] = date.toISOString().split("T")[0].split("-")
+    return `${day}/${month}/${year}`
+  }
+
+  const previousDay = () => {
+    setDate(new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1))
+  }
+
+  const nextDay = () => {
+    setDate(new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1))
+  }
 
   return (
-    <ThemedView style={styles.stepContainer}>
+    <ThemedView style={[styles.stepContainer, { paddingBottom: 85 }]}>
       <ThemedView style={styles.Container}>
         <View style={{ alignItems: 'center', justifyContent: 'center' }}>
           <CircularProgress fill={progressPercent} />
         </View>
 
         <ThemedView style={styles.todayBox}>
-          <Text style={styles.todayText}>Hoje</Text>
+          <TouchableOpacity style={styles.todayButton} onPress={previousDay}>
+            <Text style={styles.todayButtonText}>-</Text>
+          </TouchableOpacity>
+          <Text style={styles.todayText}>{dateLabel()}</Text>
+          <TouchableOpacity style={styles.todayButton} onPress={nextDay}>
+            <Text style={styles.todayButtonText}>+</Text>
+          </TouchableOpacity>
         </ThemedView>
 
         <View style={styles.listContainer}>
-          {!showDetailModal && (
-            tasks.length === 0 ? (
-              <Text style={{ color: '#fff', textAlign: 'center', marginTop: 50, fontSize: 16 }}>Lista vazia</Text>
+          {!showDetailModal &&
+            (tasks.length === 0 ? (
+              <Text
+                style={{
+                  color: '#fff',
+                  textAlign: 'center',
+                  marginTop: 60,
+                  fontSize: 16,
+                  fontFamily: 'Poppins-Regular',
+                }}
+              >
+                Lista vazia
+              </Text>
             ) : (
               <FlatList
                 data={sortedTasks}
-                keyExtractor={item => item.id}
+                keyExtractor={(item) => item._id}
                 renderItem={({ item }) => (
                   <TaskItem
                     done={item.done ?? false}
-                    title={item.title}
-                    onToggle={() => toggleDone(item.id)}
+                    title={`${item.title}`}
+                    onToggle={() => toggleDone(item._id)}
                     onPress={() => openEditTaskModal(item)}
                   />
                 )}
                 showsVerticalScrollIndicator
               />
-            )
-          )}
+            ))}
         </View>
 
-        <TaskWarningPopUp visible={showWarningModal} onClose={() => setShowWarningModal(false)} />
+        <TaskWarningPopUp
+          visible={showWarningModal}
+          onClose={() => setShowWarningModal(false)}
+        />
 
         <TouchableOpacity style={styles.newTaskButton} onPress={openNewTaskModal}>
-          <Image source={require('@/assets/images/maisIcon.png')} style={styles.iconLeft} />
-          <Text style={styles.newTaskText}>Novo afazer</Text>
+          <Image
+            source={require('@/assets/images/maisIcon.png')}
+            style={styles.iconLeft}
+          />
+          <Text style={[styles.newTaskText, { fontFamily: 'Poppins-Regular' }]}>
+            Novo afazer
+          </Text>
         </TouchableOpacity>
 
         <TaskDetailPopUp
@@ -176,22 +187,15 @@ export default function HomeScreen() {
           initialData={
             editingTask
               ? {
-                  title: editingTask.title,
-                  description: editingTask.description || '',
-                  date: editingTask.date || new Date(),
-                  priority: editingTask.priority || 'Prioridade Alta',
-                }
+                title: editingTask.title,
+                description: editingTask.description || '',
+                date: editingTask.date || new Date(),
+                priority: editingTask.priority || 'Prioridade Alta',
+              }
               : null
           }
           onDelete={
-            editingTask
-              ? async () => {
-                  const filtered = tasks.filter(t => t.id !== editingTask.id);
-                  setTasks(filtered);
-                  await recalcProgress(filtered as ProgressTask[], userId);
-                  setShowDetailModal(false);
-                }
-              : undefined
+            editingTask ? () => handleDeleteTask(editingTask._id) : undefined
           }
         />
       </ThemedView>
@@ -200,12 +204,72 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  stepContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 25 },
-  Container: { flex: 1, width: '100%', padding: 50 },
-  todayBox: { backgroundColor: 'white', borderRadius: 10, padding: 10, marginVertical: 45, minWidth: 260, alignSelf: 'center' },
-  todayText: { fontSize: 20, color: 'black', textAlign: 'left' },
-  listContainer: { height: 300, borderRadius: 10, overflow: 'hidden' },
-  newTaskButton: { backgroundColor: 'black', borderRadius: 10, paddingVertical: 12, minWidth: 220, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  iconLeft: { width: 38, height: 38, position: 'absolute', left: 10, resizeMode: 'contain' },
-  newTaskText: { color: 'white', fontSize: 18, textAlign: 'center' },
+  stepContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 25,
+  },
+  Container: {
+    flex: 1,
+    width: '100%',
+    paddingHorizontal: 40,
+    paddingTop: 35,
+    paddingBottom: 40,
+    justifyContent: 'space-between',
+  },
+  todayBox: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 10,
+    marginVertical: 35,
+    minWidth: 260,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-around'
+  },
+  todayText: {
+    fontSize: 20,
+    color: 'black',
+    textAlign: 'center',
+  },
+  todayButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  todayButtonText: {
+    color: 'black',
+    fontSize: 24,
+  },
+  listContainer: {
+    flex: 1,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  newTaskButton: {
+    backgroundColor: 'black',
+    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    alignSelf: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    minWidth: "50%",
+  },
+  iconLeft: {
+    width: 24,
+    height: 24,
+    marginRight: 15,
+    resizeMode: 'contain',
+  },
+  newTaskText: {
+    color: 'white',
+    fontSize: 18,
+    textAlignVertical: 'center',
+  },
 });

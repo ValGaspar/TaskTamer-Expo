@@ -45,7 +45,7 @@ export function TaskItem({ done, title, onToggle, onPress }: TaskItemProps) {
 const styles = StyleSheet.create({
   item: {
     flexDirection: 'row',
-    marginVertical: 5,
+    marginVertical: 3,
     alignItems: 'center',
   },
   checkboxBase: {
@@ -67,8 +67,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     color: 'white',
     padding: 10,
+    fontFamily: 'Poppins-Regular'
   },
 });

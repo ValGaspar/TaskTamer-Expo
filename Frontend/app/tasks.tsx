@@ -1,55 +1,30 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { CircularProgress } from '@/components/CircularProgress';
-
-type Task = {
-  id: string;
-  title: string;
-  description?: string;
-  date?: string;
-  priority: 'Alta' | 'Média' | 'Baixa';
-  done: boolean;
-  userId: string;
-};
-
-const STORAGE_KEY = (userId: string) => `@tasks_${userId}`;
+import { listAll, update } from '@/services/taskService';
+import { Task } from '@/services/types';
 
 export default function TasksScreen() {
   const navigation = useNavigation();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [userId, setUserId] = useState<string>('');
-
-  useEffect(() => {
-    const loadUser = async () => {
-      const storedUserId = await AsyncStorage.getItem('userId');
-      if (storedUserId) setUserId(storedUserId);
-    };
-    loadUser();
-  }, []);
 
   useFocusEffect(
-    useCallback(() => {
-      const loadTasks = async () => {
-        if (!userId) return;
-        const jsonValue = await AsyncStorage.getItem(STORAGE_KEY(userId));
-        setTasks(jsonValue ? JSON.parse(jsonValue) : []);
-      };
-      loadTasks();
-    }, [userId])
+    React.useCallback(() => {
+      loadData();
+    }, [])
   );
 
-  useEffect(() => {
-    if (!userId) return;
-    AsyncStorage.setItem(STORAGE_KEY(userId), JSON.stringify(tasks));
-  }, [tasks, userId]);
+  const loadData = async () => {
+    const tasks = await listAll()
+    setTasks(tasks)
+  };
 
-  const toggleDone = (taskId: string) =>
-    setTasks(prev =>
-      prev.map(t => (t.id === taskId ? { ...t, done: !t.done } : t))
-    );
+  const toggleDone = async (taskId: string, done: boolean) => {
+    await update(taskId, { done })
+    loadData()
+  }
 
   const getPriorityColor = (priority: Task['priority']) => {
     switch (priority) {
@@ -74,7 +49,7 @@ export default function TasksScreen() {
   const progress = tasks.length ? (completed / tasks.length) * 100 : 0;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={28} color="#516953" />
@@ -100,14 +75,14 @@ export default function TasksScreen() {
           ({ Alta: 1, Média: 2, Baixa: 3 }[a.priority] -
             { Alta: 1, Média: 2, Baixa: 3 }[b.priority])
         )}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item._id}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={[
               styles.taskCard,
               { borderLeftColor: getPriorityColor(item.priority) },
             ]}
-            onPress={() => toggleDone(item.id)}
+            onPress={() => toggleDone(item._id, !!!item.done)}
           >
             <View style={styles.taskHeader}>
               <Text
@@ -119,7 +94,8 @@ export default function TasksScreen() {
                 Prioridade {item.priority}
               </Text>
               <Text style={styles.deadline}>
-                Prazo: {formatDate(item.date || new Date().toISOString())}
+                Prazo: {formatDate((new Date(item.date)).toISOString())}
+
               </Text>
             </View>
 
@@ -161,18 +137,81 @@ export default function TasksScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', paddingHorizontal: 16, paddingTop: 40 },
-  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 35, marginVertical: 30 },
-  headerTitle: { fontSize: 22, color: '#516953', fontFamily: 'Poppins_500Medium', marginLeft: 10 },
-  progressCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', backgroundColor: '#98B88F', padding: 16, borderRadius: 16, marginBottom: 20, elevation: 2 },
-  statBox: { alignItems: 'center' },
-  statNumber: { fontSize: 20, marginBottom: 5, fontFamily: 'Poppins_500Medium' },
-  statLabel: { fontSize: 14, fontFamily: 'Poppins_400Regular' },
-  taskCard: { backgroundColor: '#fff', padding: 16, marginBottom: 15, borderRadius: 12, borderLeftWidth: 6, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 6, elevation: 2 },
-  taskHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-  priority: { fontFamily: 'Poppins_500Medium', fontSize: 12 },
-  deadline: { fontSize: 12, color: '#000' },
-  taskTitle: { fontSize: 16, fontFamily: 'Poppins_400Regular' },
-  statusRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
-  status: { fontSize: 12, fontFamily: 'Poppins_400Regular' },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingTop: 40,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 35,
+    marginVertical: 30,
+  },
+  headerTitle: {
+    fontSize: 22,
+    color: '#516953',
+    fontFamily: 'Poppins_500Medium',
+    marginLeft: 10,
+  },
+  progressCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    backgroundColor: '#98B88F',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 20,
+    elevation: 2,
+  },
+  statBox: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 20,
+    marginBottom: 5,
+    fontFamily: 'Poppins_500Medium',
+  },
+  statLabel: {
+    fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
+  },
+  taskCard: {
+    backgroundColor: '#fff',
+    padding: 16,
+    marginBottom: 15,
+    borderRadius: 12,
+    borderLeftWidth: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  taskHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  priority: {
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 12,
+  },
+  deadline: {
+    fontSize: 12,
+    color: '#000',
+  },
+  taskTitle: {
+    fontSize: 16,
+    fontFamily: 'Poppins_400Regular',
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  status: {
+    fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
+  },
 });

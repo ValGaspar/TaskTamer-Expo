@@ -1,13 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Função para deletar a conta do usuário logado
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
 export const deleteAccount = async () => {
   const token = await AsyncStorage.getItem('accessToken');
   const userId = await AsyncStorage.getItem('userId');
   if (!token) throw new Error('Token não fornecido');
   if (!userId) throw new Error('Usuário não encontrado');
 
-  const res = await fetch(`https://tasktamer-expo.onrender.com/users/${userId}`, {
+  const res = await fetch(`${API_URL}/users/${userId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -27,32 +28,3 @@ export const deleteAccount = async () => {
 
   return data;
 };
-
-// Função para atualizar imagem de perfil do usuário logado
-export const updateProfileImage = async (imageUri: string) => {
-  const token = await AsyncStorage.getItem('accessToken');
-  const userId = await AsyncStorage.getItem('userId');
-  if (!token) throw new Error('Token não fornecido');
-  if (!userId) throw new Error('Usuário não encontrado');
-
-  const formData = new FormData();
-  const file: any = {
-    uri: imageUri,
-    type: 'image/jpeg',
-    name: `profile_${userId}.jpg`,
-  };
-  formData.append('profileImage', file);
-
-  const res = await fetch(`https://tasktamer-expo.onrender.com/users/${userId}/profile-image`, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-    body: formData,
-  });
-
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Erro ao atualizar imagem');
-  return data;
-};
-

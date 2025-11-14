@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { useFonts } from 'expo-font';
 import { useAssets } from 'expo-asset';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image, StyleSheet, ActivityIndicator, TouchableOpacity, Dimensions } from 'react-native';
 import { Limelight_400Regular } from '@expo-google-fonts/limelight';
 import { LibreBaskerville_400Regular } from '@expo-google-fonts/libre-baskerville';
@@ -13,6 +14,14 @@ const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
+  useEffect(() => {
+    (async () => {
+      const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
+      if (isLoggedIn) {
+        router.navigate('/home');
+      }
+    })();
+  }, []);
 
   const [fontsLoaded] = useFonts({
     Limelight_400Regular,
@@ -26,7 +35,6 @@ export default function HomeScreen() {
     return (
       <ThemedView style={styles.loadingContainer}>
         <ActivityIndicator size="large" />
-        {/* Apenas um ícone de carregamento */}
       </ThemedView>
     );
   }

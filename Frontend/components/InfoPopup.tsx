@@ -44,14 +44,14 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   title: {
-    fontSize: 20,
-    fontFamily: 'Poppins_500Medium',
+    fontSize: 24,
+    fontFamily: 'Poppins-Regular',
     marginBottom: 10,
     color: '#4A5C42',
   },
   message: {
-    fontSize: 16,
-    fontFamily: 'Poppins_400Regular',
+    fontSize: 15,
+    fontFamily: 'Poppins-Regular',
     textAlign: 'center',
     marginBottom: 20,
     color: '#000',
@@ -64,6 +64,6 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     color: '#fff',
-    fontFamily: 'Poppins_500Medium',
+    fontFamily: 'Poppins-Regular',
   },
 });

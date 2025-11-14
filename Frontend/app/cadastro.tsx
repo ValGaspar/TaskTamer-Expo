@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Image, StyleSheet, TouchableOpacity, TextInput, View, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import { useRouter, Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Asset } from 'expo-asset';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLoadFonts } from '../hooks/useLoadFonts';
 
 export default function CadastroScreen() {
   const router = useRouter();
@@ -16,6 +17,8 @@ export default function CadastroScreen() {
   const [erroSenha, setErroSenha] = useState('');
   const [loadingAssets, setLoadingAssets] = useState(true);
   const [loadingCreate, setLoadingCreate] = useState(false);
+
+  const fontsLoaded = useLoadFonts();
 
   useEffect(() => {
     async function loadAssets() {
@@ -61,7 +64,7 @@ export default function CadastroScreen() {
 
     setLoadingCreate(true);
     try {
-      const response = await fetch('https://tasktamer-expo.onrender.com/users', {
+      const response = await fetch('http://192.168.255.129:3000/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
@@ -74,13 +77,14 @@ export default function CadastroScreen() {
         await AsyncStorage.setItem('userId', data.id);
         await AsyncStorage.setItem('userEmail', data.email);
 
+        await AsyncStorage.setItem('userLoggedIn', 'false');
+
         setName('');
         setEmail('');
         setPassword('');
         setConfirmPassword('');
 
-        Alert.alert('Sucesso', 'Sua conta foi criada!');
-        router.push('/home');
+        router.replace('/login');
       } else {
         Alert.alert('Erro', data.message || 'Erro ao criar usuário');
       }
@@ -91,11 +95,11 @@ export default function CadastroScreen() {
     }
   };
 
-  if (loadingAssets) {
+  if (!fontsLoaded || loadingAssets) {
     return (
       <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />
-        <ThemedText>Carregando...</ThemedText>
+        <ThemedText style={{ fontFamily: 'Poppins-Regular' }}>Carregando...</ThemedText>
       </ThemedView>
     );
   }
@@ -105,7 +109,7 @@ export default function CadastroScreen() {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ThemedView style={styles.stepContainer}>
           <Image source={require('@/assets/images/title.png')} style={styles.TaskTamerLogo} />
-          <ThemedText style={styles.titleContainer}>Cadastro</ThemedText>
+          <ThemedText style={[styles.titleContainer, { fontFamily: 'Poppins-Regular' }]}>Cadastro</ThemedText>
 
           <View style={styles.inputSpacing} />
 
@@ -168,23 +172,31 @@ export default function CadastroScreen() {
             />
           </ThemedView>
 
-          {/* Espaço para mensagem de erro */}
           <View style={styles.errorContainer}>
             {erroSenha ? <ThemedText style={styles.errorText}>{erroSenha}</ThemedText> : null}
           </View>
 
           <View style={styles.buttonSpacing} />
 
-          <TouchableOpacity style={styles.button} onPress={handleCreateUser} disabled={loadingCreate}>
-            {loadingCreate ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.buttonText}>Criar</ThemedText>}
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleCreateUser}
+            disabled={loadingCreate}
+          >
+            {loadingCreate ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <ThemedText style={[styles.buttonText, { fontFamily: 'Poppins-Regular' }]}>
+                Criar
+              </ThemedText>
+            )}
           </TouchableOpacity>
 
-          <ThemedView style={styles.line} />
           <ThemedText style={styles.text}>
             Já tem uma conta? Toque para{' '}
             <ThemedText
               style={styles.criar}
-              onPress={() => router.replace('/login')}
+              onPress={() => router.replace('/home')}
             >
               Entrar
             </ThemedText>
@@ -199,24 +211,22 @@ export default function CadastroScreen() {
 const styles = StyleSheet.create({
   titleContainer: {
     textAlign: 'center',
-    fontWeight: 'bold',
     fontSize: 24,
     padding: 10,
     color: 'black',
     marginTop: 80,
     marginBottom: 30,
-    fontFamily: 'Poppins_400Regular',
   },
   stepContainer: {
     flex: 1,
     alignItems: 'center',
     backgroundColor: 'white',
-    paddingTop: 60,
+    paddingTop: 80,
   },
   TaskTamerLogo: {
     width: '80%',
     resizeMode: 'contain',
-    marginBottom: 0,
+    marginBottom: '15%',
   },
   button: {
     backgroundColor: 'black',
@@ -227,50 +237,42 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     fontSize: 18,
-    fontWeight: 'bold',
     textAlign: 'center',
-    fontFamily: 'Poppins_400Regular',
+  },
+  inputContainer: {
+    height: 45,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 8,
+    width: '75%',
+    backgroundColor: '#98B88F',
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === 'ios' ? 12 : 0,
+    marginBottom: 20,
   },
   input: {
     flex: 1,
-    height: 45,
-    borderColor: 'transparent',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 0,
     fontSize: 16,
-    backgroundColor: '#98B88F',
-    fontFamily: 'Poppins_400Regular',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'transparent',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    width: '75%',
-    marginBottom: 20,
+    fontFamily: 'Poppins-Regular',
+    color: 'white',
+    paddingTop: Platform.OS === 'android' ? 0 : 2,
+    paddingBottom: Platform.OS === 'android' ? 0 : 2,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   icon: {
     width: 20,
     height: 20,
     marginRight: 10,
   },
-  line: {
-    borderColor: 'black',
-    width: '100%',
-    height: 1,
-    marginVertical: 30,
-    marginTop: 100
-  },
   text: {
     color: 'black',
-    fontFamily: 'Poppins_400Regular',
+    fontFamily: 'Poppins-Regular',
     fontSize: 15,
+    paddingTop: 100
   },
   criar: {
-    fontFamily: 'Poppins_400Regular',
+    fontFamily: 'Poppins-Regular',
     color: '#98B88F',
     fontSize: 15,
   },
@@ -282,13 +284,13 @@ const styles = StyleSheet.create({
   },
   errorContainer: {
     width: '75%',
-    minHeight: 20, // mantém espaço mesmo sem mensagem
+    minHeight: 20,
     marginBottom: 0
   },
   errorText: {
     color: 'red',
     fontSize: 12,
-    fontFamily: 'Poppins_400Regular',
+    fontFamily: 'Poppins-Regular',
     textAlign: "center"
   },
 });

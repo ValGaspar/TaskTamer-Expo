@@ -1,7 +1,7 @@
 {
   "expo": {
     "newArchEnabled": true,
-    "name": "TaskTamer",
+    "name": " Tasktamer",
     "scheme": "tasktamer",
     "slug": "tasktamer",
     "version": "1.0.0",
@@ -24,7 +24,7 @@
         "backgroundColor": "#98B88F"
       },
       "splash": {
-        "image": "./assets/images/TasktamerLOGO.png",
+        "image": "./assets/images/TasktamerLogo.png",
         "resizeMode": "contain",
         "backgroundColor": "#98B88F"
       }
@@ -32,7 +32,15 @@
     "plugins": [
       "expo-router",
       "expo-asset",
-      "expo-web-browser"
-    ]
+      "expo-web-browser",
+      "expo-font"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "00040b1f-919c-4315-8ac8-cd3a2a33e235"
+      }
+    },
+    "owner": "valgaspar"
   }
 }

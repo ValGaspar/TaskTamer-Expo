@@ -1,13 +1,15 @@
 import React, { useState, useContext } from "react";
-import { View, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import EditProfilePopup from "@/components/EditProfilePopup";
 import InfoPopup from "@/components/InfoPopup";
-import { ProgressContext } from "@/components/ProgressContext";
 import { deleteAccount } from "@/services/userService";
+import { getCount } from "@/services/taskService";
+import { useFocusEffect } from '@react-navigation/native';
+
 
 const ProfileScreen = () => {
   const [userName, setUserName] = useState("");
@@ -15,12 +17,17 @@ const ProfileScreen = () => {
   const [editVisible, setEditVisible] = useState(false);
   const [helpVisible, setHelpVisible] = useState(false);
   const [aboutVisible, setAboutVisible] = useState(false);
-
-  const { streak, totalDays } = useContext(ProgressContext);
+  const [total, setTotal] = useState(0);
+  const [done, setDone] = useState(0);
 
   const router = useRouter();
 
-  // Carrega dados do usuário ao montar
+  useFocusEffect(
+    React.useCallback(() => {
+      loadData();
+    }, [])
+  );
+
   React.useEffect(() => {
     const loadUserData = async () => {
       const savedName = await AsyncStorage.getItem("userName");
@@ -31,6 +38,15 @@ const ProfileScreen = () => {
     loadUserData();
   }, []);
 
+  const loadData = async () => {
+    const tasks = await getCount()
+    
+    if (tasks.length > 0) {
+      setTotal(tasks[0].count + tasks[1].count)
+      setDone(tasks[1].count)
+    }
+  }
+
   const handleLogout = async () => {
     Alert.alert("Confirmação", "Deseja sair da conta?", [
       { text: "Cancelar", style: "cancel" },
@@ -38,7 +54,7 @@ const ProfileScreen = () => {
         text: "Sair",
         style: "destructive",
         onPress: async () => {
-          await AsyncStorage.removeItem("userLoggedIn");
+          await AsyncStorage.removeItem("isLoggedIn");
           router.replace("/login");
         },
       },
@@ -85,13 +101,13 @@ const ProfileScreen = () => {
       </ThemedView>
 
       <ThemedView style={styles.cardsContainer}>
-        <ThemedView style={[styles.cardSmall, { width: 140 }]}>
-          <ThemedText style={styles.cardNumber}>{streak}</ThemedText>
-          <ThemedText style={styles.cardLabel}>Sequência</ThemedText>
+        <ThemedView style={[styles.cardLarge, { width: '40%' }]}>
+          <ThemedText style={styles.cardNumber}>{total}</ThemedText>
+          <ThemedText style={styles.cardLabel}>Tarefas</ThemedText>
         </ThemedView>
-        <ThemedView style={[styles.cardLarge, { width: 200 }]}>
-          <ThemedText style={styles.cardNumber}>{totalDays}</ThemedText>
-          <ThemedText style={styles.cardLabel}>Dias Produtivos</ThemedText>
+        <ThemedView style={[styles.cardLarge, { width: '55%' }]}>
+          <ThemedText style={styles.cardNumber}>{done}</ThemedText>
+          <ThemedText style={styles.cardLabel}>Total concluídas</ThemedText>
         </ThemedView>
       </ThemedView>
 
@@ -107,7 +123,7 @@ const ProfileScreen = () => {
             }}
           >
             <ThemedText style={styles.optionText}>{item}</ThemedText>
-            <ThemedText style={{ fontSize: 18 }}>›</ThemedText>
+            <ThemedText style={{ fontSize: 18, color: '#888' }}>›</ThemedText>
           </TouchableOpacity>
         ))}
 
@@ -132,14 +148,14 @@ const ProfileScreen = () => {
         visible={helpVisible}
         onClose={() => setHelpVisible(false)}
         title="Ajuda"
-        message="Entre em contato com a autora: Valentina Gaspar M, Turma: Informática 63 2."
+        message="Em caso de dúvidas, entre em contato via e-mail: valentina113457@gmail.com "
       />
 
       <InfoPopup
         visible={aboutVisible}
         onClose={() => setAboutVisible(false)}
         title="Sobre o App"
-        message="Este aplicativo foi desenvolvido para auxiliar jovens com TDAH a organizar suas tarefas e manter o foco diário, com funcionalidades de lista de tarefas, lembretes e progresso."
+        message=" Este aplicativo foi desenvolvido como parte de um Trabalho de Conclusão de Curso e tem como objetivo auxiliar jovens com TDAH na organização do dia a dia. A solução reúne listas de tarefas, lembretes, prioridades e dicas de foco, tudo em uma interface simples e visualmente tranquila para apoiar a concentração e a autonomia."
       />
     </ThemedView>
   );
@@ -148,10 +164,26 @@ const ProfileScreen = () => {
 export default ProfileScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "white" },
-  stepContainer: { alignItems: "center", paddingTop: 80, height: "45%" },
-  logo: { width: 170, height: 170, marginBottom: 10 },
-  userName: { marginTop: 20, fontSize: 22, color: "black", fontFamily: "Poppins_400Regular" },
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  stepContainer: {
+    alignItems: "center",
+    paddingTop: 80,
+    height: "45%",
+  },
+  logo: {
+    width: 170,
+    height: 170,
+    marginBottom: 10,
+  },
+  userName: {
+    marginTop: 20,
+    fontSize: 22,
+    color: "black",
+    fontFamily: "Poppins-Regular",
+  },
   cardsContainer: {
     position: "absolute",
     top: "40%",
@@ -159,19 +191,7 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-  },
-  cardSmall: {
-    height: 90,
-    backgroundColor: "white",
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 5,
-    elevation: 4,
-    zIndex: 10,
+    paddingHorizontal: 25,
   },
   cardLarge: {
     height: 90,
@@ -185,9 +205,23 @@ const styles = StyleSheet.create({
     elevation: 4,
     zIndex: 10,
   },
-  cardNumber: { fontSize: 20, fontWeight: "bold", color: "#000", fontFamily: "Poppins_400Regular" },
-  cardLabel: { fontSize: 15, color: "#000", marginTop: 5, fontFamily: "Poppins_400Regular" },
-  bodyContainer: { height: "55%", backgroundColor: "white", paddingTop: 70, alignItems: "center" },
+  cardNumber: {
+    fontSize: 20,
+    color: "#000",
+    fontFamily: "Poppins-Medium",
+  },
+  cardLabel: {
+    fontSize: 15,
+    color: "#000",
+    marginTop: 5,
+    fontFamily: "Poppins-Regular",
+  },
+  bodyContainer: {
+    height: "55%",
+    backgroundColor: "white",
+    paddingTop: '20%',
+    alignItems: "center",
+  },
   option: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -195,9 +229,13 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
-    width: 320,
+    width: '75%',
   },
-  optionText: { fontSize: 16, color: "#000", fontFamily: "Poppins_400Regular" },
+  optionText: {
+    fontSize: 16,
+    color: "#000",
+    fontFamily: "Poppins-Regular",
+  },
   logoutButton: {
     marginTop: "15%",
     paddingVertical: 12,
@@ -210,7 +248,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 2,
-    width: 320,
+    width: '75%',
   },
-  logoutText: { fontSize: 16, color: "#D86565", fontFamily: "Poppins_400Regular" },
+  logoutText: {
+    fontSize: 16,
+    color: "#D86565",
+    fontFamily: "Poppins-Regular",
+  },
 });
