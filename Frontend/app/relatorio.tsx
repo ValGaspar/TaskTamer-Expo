@@ -33,10 +33,14 @@ export default function RelatorioScreen() {
       counts[currentDay] += day.count
       done += day.count
     })
-    setWeeklyCounts(counts);
+    setWeeklyCounts(counts)
     setCompleted(done)
     setRemaining(statistics.pending)
-    setPercentage(Math.round((done / (done + statistics.pending)) * 100))
+    if ((done + statistics.pending) == 0) {
+      setPercentage(0)
+    } else {
+      setPercentage(Math.round((done / (done + statistics.pending)) * 100))
+    }
   };
 
   const totalWeek = weeklyCounts.reduce((a, b) => a + b, 0);
@@ -44,9 +48,16 @@ export default function RelatorioScreen() {
   const summaryMessage =
     totalWeek === 0
       ? "Você ainda não concluiu nenhuma tarefa. Que tal começar por algo simples hoje? 💪"
-      : percentage < 100
-        ? "Você está no caminho certo! Continue dedicando um tempinho por dia. 🌱"
-        : "Parabéns! Todas as tarefas foram concluídas com sucesso. 🎉"
+      : percentage < 20
+        ? "Todo começo é importante! Que tal concluir sua primeira tarefa do dia? 🌟"
+        : percentage < 40
+          ? "Boa! Você já deu os primeiros passos. Continue nesse ritmo! 🚀"
+          : percentage < 70
+            ? "Ótimo progresso! Você está avançando bem durante a semana. 🌱"
+            : percentage < 100
+              ? "Quase lá! Só mais um pouquinho e você finaliza tudo. 🔥"
+              : "Parabéns! Todas as tarefas foram concluídas com sucesso. 🎉";
+
 
   const weeklyData = {
     labels: ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"],

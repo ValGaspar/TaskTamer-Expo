@@ -31,7 +31,7 @@ export default function HomeScreen() {
   }, [date])
 
   const loadData = async () => {
-  
+
     const tasks = await list({ date: date.toISOString().split("T")[0] })
     setTasks(tasks)
   };
@@ -60,11 +60,14 @@ export default function HomeScreen() {
       };
 
       await create(newTask)
-
-      if (tasks.length % 4 === 0) setShowWarningModal(true);
     }
 
-    loadData()
+    await loadData();
+    
+    if (tasks.length % 4 === 0) {
+      setShowWarningModal(true)
+    }
+
     setShowDetailModal(false);
   };
 
@@ -107,11 +110,11 @@ export default function HomeScreen() {
   }
 
   const previousDay = () => {
-    setDate(new Date(date.getFullYear(), date.getMonth(), date.getDate()-1))
+    setDate(new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1))
   }
 
   const nextDay = () => {
-    setDate(new Date(date.getFullYear(), date.getMonth(), date.getDate()+1))
+    setDate(new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1))
   }
 
   return (
@@ -122,9 +125,13 @@ export default function HomeScreen() {
         </View>
 
         <ThemedView style={styles.todayBox}>
-          <Button title="-" onPress={previousDay} color={'black'}/>
+          <TouchableOpacity style={styles.todayButton} onPress={previousDay}>
+            <Text style={styles.todayButtonText}>-</Text>
+          </TouchableOpacity>
           <Text style={styles.todayText}>{dateLabel()}</Text>
-          <Button title="+" onPress={nextDay} color={'black'}/>
+          <TouchableOpacity style={styles.todayButton} onPress={nextDay}>
+            <Text style={styles.todayButtonText}>+</Text>
+          </TouchableOpacity>
         </ThemedView>
 
         <View style={styles.listContainer}>
@@ -226,6 +233,18 @@ const styles = StyleSheet.create({
     color: 'black',
     textAlign: 'center',
   },
+  todayButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  todayButtonText: {
+    color: 'black',
+    fontSize: 24,
+  },
   listContainer: {
     flex: 1,
     borderRadius: 10,
@@ -240,7 +259,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    minWidth: 210,
+    minWidth: "50%",
   },
   iconLeft: {
     width: 24,

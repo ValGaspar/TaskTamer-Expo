@@ -116,14 +116,13 @@ export default function LoginScreen() {
             )}
           </TouchableOpacity>
 
-          <ThemedView style={styles.line} />
-
           <ThemedText style={styles.text}>
             Não tem uma conta?{' '}
             <Link style={styles.criar} href="/cadastro">
-              Criar
+              Crie aqui
             </Link>
           </ThemedText>
+
         </ThemedView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
@@ -135,12 +134,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     backgroundColor: 'white',
-    paddingTop: 60,
+    paddingTop: 80,
   },
   TaskTamerLogo: {
     width: '80%',
     resizeMode: 'contain',
-    marginBottom: 150,
+    marginBottom: "50%",
   },
   titleContainer: {
     textAlign: 'center',
@@ -175,7 +174,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   input: {
-    flex: 1,
+    width: '100%',
     fontSize: 16,
     color: 'white',
     paddingTop: Platform.OS === 'android' ? 0 : 2,
@@ -193,13 +192,14 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     width: '100%',
     height: 1,
-    marginVertical: 30,
-    marginTop: 170,
+    marginVertical: 10,
+    marginTop: 120,
   },
   text: {
     color: 'black',
     fontFamily: 'Poppins-Regular',
     fontSize: 15,
+    paddingTop: 150
   },
   criar: {
     fontFamily: 'Poppins-Regular',

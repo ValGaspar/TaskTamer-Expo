@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Image, StyleSheet, TouchableOpacity, TextInput, View, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import { useRouter, Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Asset } from 'expo-asset';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLoadFonts } from '../hooks/useLoadFonts';
@@ -84,7 +84,7 @@ export default function CadastroScreen() {
         setPassword('');
         setConfirmPassword('');
 
-        router.replace('/index');
+        router.replace('/login');
       } else {
         Alert.alert('Erro', data.message || 'Erro ao criar usuário');
       }
@@ -192,12 +192,11 @@ export default function CadastroScreen() {
             )}
           </TouchableOpacity>
 
-          <ThemedView style={styles.line} />
           <ThemedText style={styles.text}>
             Já tem uma conta? Toque para{' '}
             <ThemedText
               style={styles.criar}
-              onPress={() => router.replace('/login')}
+              onPress={() => router.replace('/home')}
             >
               Entrar
             </ThemedText>
@@ -222,12 +221,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     backgroundColor: 'white',
-    paddingTop: 60,
+    paddingTop: 80,
   },
   TaskTamerLogo: {
     width: '80%',
     resizeMode: 'contain',
-    marginBottom: 0,
+    marginBottom: '15%',
   },
   button: {
     backgroundColor: 'black',
@@ -266,17 +265,11 @@ const styles = StyleSheet.create({
     height: 20,
     marginRight: 10,
   },
-  line: {
-    borderColor: 'black',
-    width: '100%',
-    height: 1,
-    marginVertical: 30,
-    marginTop: 100
-  },
   text: {
     color: 'black',
     fontFamily: 'Poppins-Regular',
     fontSize: 15,
+    paddingTop: 100
   },
   criar: {
     fontFamily: 'Poppins-Regular',

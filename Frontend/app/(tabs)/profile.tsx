@@ -6,8 +6,10 @@ import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import EditProfilePopup from "@/components/EditProfilePopup";
 import InfoPopup from "@/components/InfoPopup";
-import { ProgressContext } from "@/components/ProgressContext";
 import { deleteAccount } from "@/services/userService";
+import { getCount } from "@/services/taskService";
+import { useFocusEffect } from '@react-navigation/native';
+
 
 const ProfileScreen = () => {
   const [userName, setUserName] = useState("");
@@ -15,10 +17,16 @@ const ProfileScreen = () => {
   const [editVisible, setEditVisible] = useState(false);
   const [helpVisible, setHelpVisible] = useState(false);
   const [aboutVisible, setAboutVisible] = useState(false);
-
-  const { streak, totalDays } = useContext(ProgressContext);
+  const [total, setTotal] = useState(0);
+  const [done, setDone] = useState(0);
 
   const router = useRouter();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadData();
+    }, [])
+  );
 
   React.useEffect(() => {
     const loadUserData = async () => {
@@ -29,6 +37,15 @@ const ProfileScreen = () => {
     };
     loadUserData();
   }, []);
+
+  const loadData = async () => {
+    const tasks = await getCount()
+    
+    if (tasks.length > 0) {
+      setTotal(tasks[0].count + tasks[1].count)
+      setDone(tasks[1].count)
+    }
+  }
 
   const handleLogout = async () => {
     Alert.alert("Confirmação", "Deseja sair da conta?", [
@@ -84,13 +101,13 @@ const ProfileScreen = () => {
       </ThemedView>
 
       <ThemedView style={styles.cardsContainer}>
-        <ThemedView style={[styles.cardSmall, { width: 130 }]}>
-          <ThemedText style={styles.cardNumber}>{streak}</ThemedText>
-          <ThemedText style={styles.cardLabel}>Sequência</ThemedText>
+        <ThemedView style={[styles.cardLarge, { width: '40%' }]}>
+          <ThemedText style={styles.cardNumber}>{total}</ThemedText>
+          <ThemedText style={styles.cardLabel}>Tarefas</ThemedText>
         </ThemedView>
-        <ThemedView style={[styles.cardLarge, { width: 190 }]}>
-          <ThemedText style={styles.cardNumber}>{totalDays}</ThemedText>
-          <ThemedText style={styles.cardLabel}>Dias Produtivos</ThemedText>
+        <ThemedView style={[styles.cardLarge, { width: '55%' }]}>
+          <ThemedText style={styles.cardNumber}>{done}</ThemedText>
+          <ThemedText style={styles.cardLabel}>Total concluídas</ThemedText>
         </ThemedView>
       </ThemedView>
 
@@ -131,14 +148,14 @@ const ProfileScreen = () => {
         visible={helpVisible}
         onClose={() => setHelpVisible(false)}
         title="Ajuda"
-        message="Caso ainda tenha dúvidas, entre em contato comigo! valentina113457@gmail.com "
+        message="Em caso de dúvidas, entre em contato via e-mail: valentina113457@gmail.com "
       />
 
       <InfoPopup
         visible={aboutVisible}
         onClose={() => setAboutVisible(false)}
         title="Sobre o App"
-        message="Este aplicativo foi desenvolvido para auxiliar jovens com TDAH a organizar suas tarefas e manter o foco diário, com funcionalidades de lista de tarefas, lembretes e progresso."
+        message=" Este aplicativo foi desenvolvido como parte de um Trabalho de Conclusão de Curso e tem como objetivo auxiliar jovens com TDAH na organização do dia a dia. A solução reúne listas de tarefas, lembretes, prioridades e dicas de foco, tudo em uma interface simples e visualmente tranquila para apoiar a concentração e a autonomia."
       />
     </ThemedView>
   );
@@ -174,19 +191,7 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 15,
-  },
-  cardSmall: {
-    height: 90,
-    backgroundColor: "white",
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 5,
-    elevation: 4,
-    zIndex: 10,
+    paddingHorizontal: 25,
   },
   cardLarge: {
     height: 90,
@@ -214,7 +219,7 @@ const styles = StyleSheet.create({
   bodyContainer: {
     height: "55%",
     backgroundColor: "white",
-    paddingTop: 70,
+    paddingTop: '20%',
     alignItems: "center",
   },
   option: {
@@ -224,7 +229,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
-    width: 310,
+    width: '75%',
   },
   optionText: {
     fontSize: 16,
@@ -243,7 +248,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 2,
-    width: 320,
+    width: '75%',
   },
   logoutText: {
     fontSize: 16,

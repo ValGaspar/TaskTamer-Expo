@@ -12,6 +12,27 @@ const getAllTasks = async (req, res) => {
   }
 };
 
+const getTasksCount = async (req, res) => {
+  try {
+    const { userId } = req.user;
+
+    const tasks = await Task.aggregate([
+      {
+        $match: { userId: new mongoose.Types.ObjectId(userId) }
+      },
+      {
+        $group: {
+          _id: '$done',
+          count: { $sum: 1 } // this means that the count will increment by 1
+        }
+      }
+      ]);
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ message: "Erro ao buscar tarefas", error });
+  }
+};
+
 const getTasksByUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -137,6 +158,7 @@ const deleteTask = async (req, res) => {
 
 module.exports = {
   getAllTasks,
+  getTasksCount,
   getTasksByUser,
   getTaskStatistics,
   createTask,

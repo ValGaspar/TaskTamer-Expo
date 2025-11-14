@@ -1,6 +1,5 @@
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-// Envia notificação para um dispositivo Expo
 const sendPushNotification = async (req, res) => {
   const { expoPushToken, title, body } = req.body;
 
@@ -8,7 +7,6 @@ const sendPushNotification = async (req, res) => {
     return res.status(400).json({ message: "Token do dispositivo é obrigatório." });
   }
 
-  // Expo Push API espera um array de mensagens, mesmo que seja uma só
   const messages = [{
     to: expoPushToken,
     sound: "default",
@@ -29,7 +27,6 @@ const sendPushNotification = async (req, res) => {
     const data = await response.json();
     res.json({ success: true, data });
   } catch (error) {
-    console.error("Erro completo ao enviar notificação:", error);
     res.status(500).json({ 
       message: "Erro ao enviar notificação", 
       error: error.toString() 

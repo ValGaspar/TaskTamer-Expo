@@ -1,7 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
 export const login = async (email, password) => {
-  const res = await fetch('http://192.168.255.129:3000/auth', {
+  const res = await fetch(`${API_URL}/auth`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),

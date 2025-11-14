@@ -1,12 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
 export const deleteAccount = async () => {
   const token = await AsyncStorage.getItem('accessToken');
   const userId = await AsyncStorage.getItem('userId');
   if (!token) throw new Error('Token não fornecido');
   if (!userId) throw new Error('Usuário não encontrado');
 
-  const res = await fetch(`http://192.168.255.129:3000/users/${userId}`, {
+  const res = await fetch(`${API_URL}/users/${userId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
